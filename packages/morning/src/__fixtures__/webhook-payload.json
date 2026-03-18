@@ -1,0 +1,28 @@
+{
+  "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
+  "description": "Order #1234",
+  "type": 320,
+  "number": "0042",
+  "documentDate": "2026-03-18",
+  "creationDate": 1742310000,
+  "status": 0,
+  "lang": "he",
+  "amount": 100,
+  "currency": "ILS",
+  "vatType": 0,
+  "payment": [
+    {
+      "type": 3,
+      "cardNum": "1234",
+      "cardType": "visa",
+      "numPayments": 1,
+      "price": 100
+    }
+  ],
+  "client": {
+    "name": "Israel Israeli",
+    "emails": ["israel@example.com"]
+  },
+  "custom": "{\"orderId\":\"order_456\"}",
+  "linkedDocuments": []
+}

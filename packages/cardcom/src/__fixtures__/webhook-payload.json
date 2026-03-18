@@ -1,0 +1,40 @@
+{
+  "ResponseCode": 0,
+  "Description": "Success",
+  "TerminalNumber": 1000,
+  "LowProfileId": "550e8400-e29b-41d4-a716-446655440000",
+  "TranzactionId": 219282004,
+  "ReturnValue": "{\"orderId\":\"order_456\"}",
+  "Operation": "ChargeOnly",
+  "UIValues": {
+    "CardOwnerEmail": "john@example.com",
+    "CardOwnerName": "John Doe",
+    "CardOwnerPhone": "+972-54-1234567",
+    "CardOwnerIdentityNumber": "123456789",
+    "NumOfPayments": 1,
+    "CardYear": 25,
+    "CardMonth": 12,
+    "IsAbroadCard": false
+  },
+  "TranzactionInfo": {
+    "ResponseCode": 0,
+    "Description": "Success",
+    "TranzactionId": 219282004,
+    "TerminalNumber": 1000,
+    "Amount": 10.5,
+    "CoinId": 1,
+    "CreateDate": "2026-03-18T10:30:00Z",
+    "Last4CardDigits": 1111,
+    "CardMonth": 12,
+    "CardYear": 25,
+    "ApprovalNumber": "0077123",
+    "FirstPaymentAmount": 10.5,
+    "ConstPaymentAmount": 0,
+    "NumberOfPayments": 1,
+    "CardOwnerName": "John Doe",
+    "CardOwnerPhone": "+972-54-1234567",
+    "CardOwnerEmail": "john@example.com",
+    "CardOwnerIdentityNumber": "123456789"
+  },
+  "Country": "IL"
+}
