@@ -1,0 +1,1423 @@
+openapi: 3.0.3
+info:
+  title: Grow-IL Payment API
+  description: |
+    Grow Payment Solutions API for Israeli payment processing.
+
+    This API supports credit card payments, Bit payments, Apple Pay, Google Pay,
+    recurring payments, payment links, tokenization, and refunds.
+
+    **Important Notes:**
+    - All requests must be sent from your server's backend only
+    - Client-side (browser-based) requests are not supported and will be blocked
+    - Avoid special characters in all API request parameters
+
+    **Documentation:** https://grow-il.readme.io/reference/introduction.md
+  version: "1.0"
+  contact:
+    name: Grow Payment Solutions
+    url: https://grow-il.readme.io
+  x-logo:
+    url: https://grow-il.readme.io
+
+servers:
+  - url: https://sandbox.meshulam.co.il/api/light/server/1.0
+    description: Sandbox Environment (Testing)
+  - url: https://sandboxapi.grow.link/api/light/server/1.0
+    description: Sandbox Environment (Grow Link)
+  - url: https://secure.meshulam.co.il/api/light/server/1.0
+    description: Production Environment
+
+tags:
+  - name: Regular Payments
+    description: |
+      Create one-time payment processes.
+      Documentation: https://grow-il.readme.io/reference/overview-6.md
+  - name: Payment Links
+    description: |
+      Create and manage payment links for customers.
+      Documentation: https://grow-il.readme.io/reference/payment-link.md
+  - name: Recurring Payments
+    description: |
+      Set up and manage recurring/direct debit payments.
+      Documentation: https://grow-il.readme.io/reference/overview-1.md
+  - name: Delayed Payments (J4/J5)
+    description: |
+      Create suspended charge transactions for variable amounts.
+      Documentation: https://grow-il.readme.io/reference/overview-2.md
+  - name: Token Operations
+    description: |
+      Tokenize cards and create transactions using tokens.
+      Documentation: https://grow-il.rxeadme.io/reference/overview-4.md
+  - name: Refunds
+    description: |
+      Refund and cancel transactions.
+      Documentation: https://grow-il.readme.io/reference/overview-3.md
+  - name: Transaction Info
+    description: |
+      Query transaction and payment process information.
+      Documentation: https://grow-il.readme.io/reference/overview-5.md
+  - name: Approval
+    description: |
+      Approve transactions after server callback.
+      Documentation: https://grow-il.readme.io/reference/post_api-light-server-1-0-approvetransaction-4.md
+
+paths:
+  /createPaymentProcess:
+    post:
+      tags:
+        - Regular Payments
+        - Recurring Payments
+        - Delayed Payments (J4/J5)
+        - Token Operations
+      summary: Create Payment Process
+      description: |
+        Creates a new payment process. The behavior varies based on `chargeType`:
+        - `chargeType=1`: Regular one-time payment
+        - `chargeType=2`: Suspended/delayed charge (J4/J5)
+        - `chargeType=3`: Token creation only (with `saveCardToken=1`)
+
+        **Regular Payment:** https://grow-il.readme.io/reference/post_api-light-server-1-0-createpaymentprocess.md
+        **Recurring Payment:** https://grow-il.readme.io/reference/post_api-light-server-1-0-createpaymentprocess-3.md
+        **Delayed Payment:** https://grow-il.readme.io/reference/post_api-light-server-1-0-createpaymentprocess-10.md
+        **Get Token Only:** https://grow-il.readme.io/reference/post_api-light-server-1-0-createpaymentprocess-6.md
+      operationId: createPaymentProcess
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentProcessRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatePaymentProcessResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /CreatePaymentLink:
+    post:
+      tags:
+        - Payment Links
+      summary: Create Payment Link
+      description: |
+        Creates a new payment link that can be shared with customers.
+
+        **Documentation:** https://grow-il.readme.io/reference/post_api-light-server-1-0-createpaymentlink.md
+      operationId: createPaymentLink
+      parameters:
+        - $ref: '#/components/parameters/XApiKey'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentLinkRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentLinkResponse'
+
+  /UpdatePaymentLink:
+    post:
+      tags:
+        - Payment Links
+      summary: Update Payment Link
+      description: |
+        Updates an existing payment link (e.g., activate/deactivate).
+
+        **Documentation:** https://grow-il.readme.io/reference/post_api-light-server-1-0-updatepaymentlink.md
+      operationId: updatePaymentLink
+      parameters:
+        - $ref: '#/components/parameters/XApiKey'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - pageCode
+                - isActive
+                - paymentLinkProcessId
+                - paymentLinkProcessToken
+              properties:
+                pageCode:
+                  type: string
+                  description: Unique identifier for this payment method
+                  example: "c34d1f4a546f"
+                isActive:
+                  type: integer
+                  description: Activation status (1=active, 0=inactive)
+                  enum: [0, 1]
+                  example: 1
+                paymentLinkProcessId:
+                  type: integer
+                  description: Process identifier
+                  example: 15612
+                paymentLinkProcessToken:
+                  type: string
+                  description: Process token
+                  example: "a2f79786643f63476433100cdeb70792"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericSuccessResponse'
+
+  /getPaymentLinkInfo:
+    post:
+      tags:
+        - Payment Links
+      summary: Get Payment Link Info
+      description: |
+        Retrieves information about a payment link.
+
+        **Documentation:** https://grow-il.readme.io/reference/post_api-light-server-1-0-getpaymentlinkinfo-2.md
+      operationId: getPaymentLinkInfo
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - pageCode
+                - paymentLinkProcessId
+                - paymentLinkProcessToken
+              properties:
+                pageCode:
+                  type: string
+                  description: Unique identifier for this payment method
+                  example: "0b7a16e03b25"
+                paymentLinkProcessId:
+                  type: string
+                  description: Process identifier
+                  example: "15612"
+                paymentLinkProcessToken:
+                  type: string
+                  description: Process token
+                  example: "a2f79786643f63476433100cdeb70792"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericSuccessResponse'
+
+  /createTransactionWithToken:
+    post:
+      tags:
+        - Token Operations
+      summary: Create Transaction With Token
+      description: |
+        Creates a new transaction using a previously saved card token.
+
+        **Documentation:** https://grow-il.readme.io/reference/post_api-light-server-1-0-createtransactionwithtoken-4.md
+
+        For Premium Recurring (Manage by You):
+        - First Payment: https://grow-il.readme.io/reference/post_api-light-server-1-0-createtransactionwithtoken-3.md
+        - Further Payments: https://grow-il.readme.io/reference/post_api-light-server-1-0-createtransactionwithtoken-1.md
+
+        For Premium Recurring (Manage by Grow):
+        - https://grow-il.readme.io/reference/post_api-light-server-1-0-createtransactionwithtoken.md
+      operationId: createTransactionWithToken
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateTransactionWithTokenRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+
+  /getTokenTransactionsByExternalIdentifiers/:
+    post:
+      tags:
+        - Token Operations
+      summary: Get Token Transactions By External Identifiers
+      description: |
+        Retrieves token transactions using external identifiers.
+
+        **Documentation:** https://grow-il.readme.io/reference/post_api-light-server-1-0-gettokentransactionsbyexternalidentifiers-1.md
+      operationId: getTokenTransactionsByExternalIdentifiers
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - userId
+                - cardToken
+                - transactionUniqueIdentifier
+              properties:
+                userId:
+                  type: string
+                  description: Unique business identifier
+                  example: "4ec1d595ae764243"
+                cardToken:
+                  type: string
+                  description: Credit card token
+                  example: "b91ca50b93c7b402a0665c09e533f6ca"
+                transactionGroupIdentifier:
+                  type: string
+                  description: Group identifier; request rejected if successful payment with this value exists
+                transactionUniqueIdentifier:
+                  type: integer
+                  description: Unique request identifier; prevents duplicate processing
+                  example: 2002
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericSuccessResponse'
+
+  /updateDirectDebit:
+    post:
+      tags:
+        - Recurring Payments
+      summary: Update Recurring Payment / Direct Debit
+      description: |
+        Updates an existing recurring payment or direct debit transaction.
+
+        **Documentation:** https://grow-il.readme.io/reference/post_api-light-server-1-0-updatedirectdebit.md
+      operationId: updateDirectDebit
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UpdateDirectDebitRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericSuccessResponse'
+
+  /settleSuspendedTransaction:
+    post:
+      tags:
+        - Delayed Payments (J4/J5)
+      summary: Settle Suspended Transaction
+      description: |
+        Settles (completes) a previously suspended transaction with the final amount.
+
+        **Documentation:** https://grow-il.readme.io/reference/post_api-light-server-1-0-settlesuspendedtransaction-1.md
+      operationId: settleSuspendedTransaction
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SettleSuspendedTransactionRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+
+  /refundTransaction:
+    post:
+      tags:
+        - Refunds
+      summary: Refund Transaction
+      description: |
+        Refunds a previously completed transaction (full or partial).
+
+        **Documentation:** https://grow-il.readme.io/reference/post_api-light-server-1-0-refundtransaction-1.md
+      operationId: refundTransaction
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RefundTransactionRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponse'
+
+  /cancelBitTransaction/:
+    post:
+      tags:
+        - Refunds
+      summary: Cancel Bit Transaction
+      description: |
+        Cancels a Bit payment transaction.
+
+        **Note:** This endpoint uses a different path structure (/andriod/ instead of /server/).
+        Full path: `/api/light/andriod/1.0/cancelBitTransaction/`
+
+        **Documentation:** https://grow-il.readme.io/reference/post_api-light-andriod-1-0-cancelbittransaction.md
+      operationId: cancelBitTransaction
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - pageCode
+                - processId
+                - processToken
+              properties:
+                pageCode:
+                  type: string
+                  description: Unique identifier for payment method
+                  example: "9f4c528c7fae"
+                processId:
+                  type: integer
+                  description: Process identifier
+                  example: 443829
+                processToken:
+                  type: string
+                  description: Process token
+                  example: "5e7343c2e8fad0157701fe8fc657581b"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericSuccessResponse'
+
+  /getTransactionInfo:
+    post:
+      tags:
+        - Transaction Info
+      summary: Get Transaction Info
+      description: |
+        Retrieves detailed information about a specific transaction.
+
+        **Documentation:** https://grow-il.readme.io/reference/post_api-light-server-1-0-gettransactioninfo-1.md
+      operationId: getTransactionInfo
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - pageCode
+                - transactionId
+                - transactionToken
+              properties:
+                pageCode:
+                  type: string
+                  description: Unique identifier for payment method
+                  example: "0b7a16e03b25"
+                transactionId:
+                  type: integer
+                  description: Transaction identifier
+                  example: 425855
+                transactionToken:
+                  type: string
+                  description: Transaction token
+                  example: "f3095a2579e86d15f5234fba0ee0ef09"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionInfoResponse'
+
+  /getPaymentProcessInfo:
+    post:
+      tags:
+        - Transaction Info
+      summary: Get Payment Process Info
+      description: |
+        Retrieves information about a payment process.
+
+        **Documentation:** https://grow-il.readme.io/reference/post_api-light-server-1-0-getpaymentprocessinfo-1.md
+      operationId: getPaymentProcessInfo
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - pageCode
+                - processId
+                - processToken
+              properties:
+                pageCode:
+                  type: string
+                  description: Unique identifier for payment method
+                  example: "0b7a16e03b25"
+                processId:
+                  type: integer
+                  description: Process identifier
+                  example: 395235
+                processToken:
+                  type: string
+                  description: Process token
+                  example: "7ebb2d0ce6139d8540b6796ffb514"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentProcessInfoResponse'
+
+  /approveTransaction:
+    post:
+      tags:
+        - Approval
+      summary: Approve Transaction
+      description: |
+        Approves a transaction after receiving the server-to-server callback.
+        This is typically called from your webhook handler after validating the transaction.
+
+        **Documentation:** https://grow-il.readme.io/reference/post_api-light-server-1-0-approvetransaction-4.md
+      operationId: approveTransaction
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ApproveTransactionRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericSuccessResponse'
+
+components:
+  parameters:
+    XApiKey:
+      name: x-api-key
+      in: header
+      required: true
+      description: API key for authentication (provided by Grow support)
+      schema:
+        type: string
+
+  schemas:
+    # Common field definitions
+    PageField:
+      type: object
+      description: Customer information fields
+      properties:
+        fullName:
+          type: string
+          description: Full name (must consist of at least two names)
+          example: "John Doe"
+        phone:
+          type: string
+          description: Valid Israeli mobile number
+          pattern: '^05[0-9]{8}$'
+          example: "0501234567"
+        email:
+          type: string
+          format: email
+          description: Valid email address
+          example: "john@example.com"
+        invoiceName:
+          type: string
+          description: Name for invoice
+        invoiceLicenseNumber:
+          type: string
+          description: License number for invoice
+
+    ProductData:
+      type: object
+      description: Product/item information for invoice
+      properties:
+        catalogNumber:
+          type: integer
+          description: Item catalog number
+        quantity:
+          type: integer
+          description: Item quantity
+        price:
+          type: number
+          description: Item price
+        itemDescription:
+          type: string
+          description: Item description
+
+    # Request schemas
+    CreatePaymentProcessRequest:
+      type: object
+      required:
+        - pageCode
+        - userId
+        - sum
+        - successUrl
+        - cancelUrl
+        - description
+        - pageField[fullName]
+        - pageField[phone]
+      properties:
+        pageCode:
+          type: string
+          description: |
+            Unique identifier for payment method.
+            **Documentation:** https://grow-il.readme.io/reference/authentication.md
+          example: "0b7a16e03b25"
+        userId:
+          type: string
+          description: Unique identifier for business using Grow payments
+          example: "4ec1d595ae764243"
+        apiKey:
+          type: string
+          description: API key for multi-merchant platforms
+        sum:
+          type: number
+          description: Total payment amount
+          example: 10.99
+        chargeType:
+          type: integer
+          description: |
+            Payment type:
+            - 1 = Regular charge (default)
+            - 2 = Suspended/delayed charge (J4/J5)
+            - 3 = Token creation only
+          enum: [1, 2, 3]
+          default: 1
+        successUrl:
+          type: string
+          format: uri
+          description: HTTPS redirect URL after successful payment (no localhost)
+          example: "https://example.com/success"
+        cancelUrl:
+          type: string
+          format: uri
+          description: Redirect URL if payment is cancelled
+          example: "https://example.com/cancel"
+        description:
+          type: string
+          description: Product/service description for transaction details
+          example: "Premium subscription"
+        paymentNum:
+          type: integer
+          description: Fixed number of payment installments (1-12)
+          minimum: 1
+          maximum: 12
+        maxPaymentNum:
+          type: integer
+          description: Maximum installments customer can select (2-12)
+          minimum: 2
+          maximum: 12
+        pageField[fullName]:
+          type: string
+          description: Customer full name (minimum two names)
+          example: "John Doe"
+        pageField[phone]:
+          type: string
+          description: Israeli mobile number
+          example: "0501234567"
+        pageField[email]:
+          type: string
+          format: email
+          description: Customer email address
+        pageField[invoiceName]:
+          type: string
+          description: Name for invoice
+        pageField[invoiceLicenseNumber]:
+          type: string
+          description: License number for invoice
+        saveCardToken:
+          type: integer
+          description: Save card token for future payments (1=save, 0=don't save)
+          enum: [0, 1]
+        cField1:
+          type: string
+          description: Custom field 1 (no special characters)
+        cField2:
+          type: string
+          description: Custom field 2
+        cField3:
+          type: string
+          description: Custom field 3
+        cField4:
+          type: string
+          description: Custom field 4
+        cField5:
+          type: string
+          description: Custom field 5
+        cField6:
+          type: string
+          description: Custom field 6
+        cField7:
+          type: string
+          description: Custom field 7
+        cField8:
+          type: string
+          description: Custom field 8
+        cField9:
+          type: string
+          description: Custom field 9
+        productData[0][catalogNumber]:
+          type: integer
+          description: First item catalog number
+        productData[0][quantity]:
+          type: integer
+          description: First item quantity
+        productData[0][price]:
+          type: number
+          description: First item price
+        productData[0][itemDescription]:
+          type: string
+          description: First item description
+        notifyUrl:
+          type: string
+          format: uri
+          description: |
+            Server-to-server webhook URL for payment notifications.
+            **Documentation:** https://grow-il.readme.io/reference/server-response.md
+        invoiceNotifyUrl:
+          type: string
+          format: uri
+          description: |
+            Invoice webhook URL.
+            **Documentation:** https://grow-il.readme.io/reference/invoice-server-response.md
+
+    CreatePaymentLinkRequest:
+      type: object
+      required:
+        - userId
+        - pageCode
+        - paymentLinkType
+        - isActive
+        - title
+        - pageFieldSettings[fullName][value]
+        - pageFieldSettings[phone][value]
+        - products[data][0][name]
+        - products[data][0][price]
+        - products[data][0][vatType]
+        - paymentTypes[0][type]
+        - transactionType[]
+      properties:
+        userId:
+          type: string
+          description: Unique business identifier
+        pageCode:
+          type: string
+          description: Unique identifier for this payment method
+        paymentLinkType:
+          type: integer
+          description: Link type (1=closed for one payment)
+        isActive:
+          type: integer
+          description: Link activation status (1=active)
+          enum: [0, 1]
+        title:
+          type: string
+          description: Page title
+        pageFieldSettings[fullName][value]:
+          type: string
+          description: Customer full name
+        pageFieldSettings[phone][value]:
+          type: string
+          description: Customer phone number
+        products[data][0][name]:
+          type: string
+          description: Product name
+        products[data][0][price]:
+          type: number
+          description: Product price
+        products[data][0][vatType]:
+          type: integer
+          description: VAT type (1=regular, 3=exempt)
+          enum: [1, 3]
+        paymentTypes[0][type]:
+          type: string
+          description: Payment type
+          example: "payments"
+        paymentTypes[0][payments][paymentsPaymentNum]:
+          type: integer
+          description: Number of payments (1-12)
+        transactionType[]:
+          type: array
+          items:
+            type: integer
+          description: |
+            Payment methods:
+            - 1 = Credit card
+            - 6 = Bit
+            - 13 = Apple Pay
+            - 14 = Google Pay
+            - 15 = Bank transfer
+        successUrl:
+          type: string
+          format: uri
+          description: Success redirect URL
+        notifyUrl:
+          type: string
+          format: uri
+          description: Server-to-server webhook URL
+        invoiceNotifyUrl:
+          type: string
+          format: uri
+          description: Invoice webhook URL
+
+    CreateTransactionWithTokenRequest:
+      type: object
+      required:
+        - cardToken
+        - userId
+        - sum
+        - description
+        - paymentType
+        - pageField[fullName]
+        - pageField[phone]
+        - transactionUniqueIdentifier
+      properties:
+        cardToken:
+          type: string
+          description: Credit card token from previous tokenization
+          example: "b91ca50b93c7b402a0665c09e533f6ca"
+        userId:
+          type: string
+          description: Business identifier
+          example: "4ec1d595ae764243"
+        sum:
+          type: number
+          description: Transaction amount
+          example: 10.99
+        description:
+          type: string
+          description: Product/service description
+        paymentType:
+          type: integer
+          description: |
+            Payment method:
+            - 1 = Direct Debit
+            - 2 = Regular
+            - 4 = Payments (installments)
+          enum: [1, 2, 4]
+        paymentNum:
+          type: integer
+          description: Number of installments (1-12)
+          minimum: 1
+          maximum: 12
+        pageField[fullName]:
+          type: string
+          description: Customer full name (minimum two names)
+        pageField[phone]:
+          type: string
+          description: Israeli mobile number
+        pageField[email]:
+          type: string
+          format: email
+          description: Customer email
+        pageField[invoiceName]:
+          type: string
+          description: Invoice name
+        pageField[invoiceLicenseNumber]:
+          type: string
+          description: Invoice license number
+        transactionGroupIdentifier:
+          type: integer
+          description: Group identifier; prevents duplicate successful payments
+        transactionUniqueIdentifier:
+          type: integer
+          description: Unique request identifier; prevents duplicate submissions
+          example: 2002
+        cField1:
+          type: string
+        cField2:
+          type: string
+        cField3:
+          type: string
+        cField4:
+          type: string
+        cField5:
+          type: string
+        cField6:
+          type: string
+        cField7:
+          type: string
+        cField8:
+          type: string
+        cField9:
+          type: string
+
+    UpdateDirectDebitRequest:
+      type: object
+      required:
+        - userId
+        - transactionToken
+        - transactionId
+        - asmachta
+      properties:
+        userId:
+          type: string
+          description: Unique business identifier
+        transactionToken:
+          type: string
+          description: Transaction token
+        transactionId:
+          type: integer
+          description: Transaction identifier
+        asmachta:
+          type: integer
+          description: Approval code from credit card company
+        fullName:
+          type: string
+          description: Customer full name (minimum two names)
+        phone:
+          type: string
+          description: Israeli mobile number
+        chargeDay:
+          type: integer
+          description: Day of month for charge (1-31)
+          minimum: 1
+          maximum: 31
+        sum:
+          type: number
+          description: Updated payment amount
+        paymentNum:
+          type: integer
+          description: Number of payments (1-48)
+          minimum: 1
+          maximum: 48
+        email:
+          type: string
+          format: email
+        changeStatus:
+          type: integer
+          description: Status change (1=active, 2=canceled)
+          enum: [1, 2]
+        updateCard:
+          type: integer
+          description: Update card flag (0=no update, 1=update)
+          enum: [0, 1]
+
+    SettleSuspendedTransactionRequest:
+      type: object
+      required:
+        - userId
+        - transactionId
+        - transactionToken
+        - sum
+      properties:
+        userId:
+          type: string
+          description: Unique business identifier
+        transactionId:
+          type: integer
+          description: Transaction identifier
+        transactionToken:
+          type: string
+          description: Transaction token
+        sum:
+          type: number
+          description: Final settlement amount
+          example: 10.99
+        productData[0][catalogNumber]:
+          type: integer
+          description: Item catalog number
+        productData[0][quantity]:
+          type: integer
+          description: Item quantity
+        productData[0][price]:
+          type: number
+          description: Item price
+        productData[0][itemDescription]:
+          type: string
+          description: Item description
+        pageField[invoiceName]:
+          type: string
+          description: Invoice name
+        pageField[invoiceLicenseNumber]:
+          type: string
+          description: Invoice license number
+
+    RefundTransactionRequest:
+      type: object
+      required:
+        - transactionId
+        - transactionToken
+        - refundSum
+        - userId
+      properties:
+        transactionId:
+          type: integer
+          description: Transaction identifier
+          example: 425555
+        transactionToken:
+          type: string
+          description: Transaction token
+          example: "f3095a2579e8654f5234fba0ee0ef09"
+        refundSum:
+          type: number
+          description: Amount to refund
+          example: 2
+        userId:
+          type: string
+          description: Unique business identifier
+          example: "4ec1d595ae764243"
+        pageCode:
+          type: string
+          description: Unique identifier for payment method
+        stopDirectDebit:
+          type: integer
+          description: For direct debit, send 1 to stop future payments
+          enum: [0, 1]
+
+    ApproveTransactionRequest:
+      type: object
+      required:
+        - pageCode
+        - transactionId
+        - transactionToken
+        - transactionTypeId
+        - paymentType
+        - sum
+        - paymentsNum
+        - allPaymentsNum
+        - paymentDate
+        - asmachta
+        - description
+        - fullName
+        - payerPhone
+        - payerEmail
+        - cardSuffix
+        - cardType
+        - cardTypeCode
+        - cardBrand
+        - cardBrandCode
+        - cardExp
+        - processId
+        - processToken
+      properties:
+        pageCode:
+          type: string
+          description: Unique identifier for payment method
+        transactionId:
+          type: integer
+          description: Transaction identifier
+        transactionToken:
+          type: string
+          description: Transaction token
+        transactionTypeId:
+          type: integer
+          description: |
+            Payment method:
+            - 1 = Credit card
+            - 6 = Bit
+            - 13 = Apple Pay
+            - 14 = Google Pay
+          enum: [1, 6, 13, 14]
+        paymentType:
+          type: integer
+          description: |
+            Payment classification:
+            - 1 = Direct Debit
+            - 2 = Regular
+            - 4 = Payments
+          enum: [1, 2, 4]
+        sum:
+          type: number
+          description: Payment amount from server notification
+        firstPaymentSum:
+          type: number
+          description: First payment in multi-payment transaction
+        periodicalPaymentSum:
+          type: number
+          description: Subsequent payment amounts
+        paymentsNum:
+          type: integer
+          description: Current payment number
+        allPaymentsNum:
+          type: integer
+          description: Total payment count
+        paymentDate:
+          type: string
+          description: Payment date (DD/MM/YY)
+          example: "15/01/26"
+        asmachta:
+          type: integer
+          description: Credit card company approval code
+        description:
+          type: string
+          description: Product/service description
+        fullName:
+          type: string
+          description: Customer full name
+        payerPhone:
+          type: string
+          description: Customer phone number
+        payerEmail:
+          type: string
+          format: email
+          description: Customer email
+        cardSuffix:
+          type: string
+          description: Last 4 card digits
+        cardType:
+          type: string
+          description: Card type classification
+        cardTypeCode:
+          type: integer
+          description: |
+            Card type code:
+            - 1 = Local
+            - 2 = Foreign
+            - 3 = Fuel
+            - 4 = Debit
+            - 5 = Gift/Rechargeable
+          enum: [1, 2, 3, 4, 5]
+        cardBrand:
+          type: string
+          description: Card brand name
+        cardBrandCode:
+          type: integer
+          description: |
+            Card brand code:
+            - 2 = Mastercard
+            - 3 = Visa
+            - 5 = Isracard
+            - 7 = Discover
+            - 8 = Diners
+          enum: [2, 3, 5, 7, 8]
+        cardExp:
+          type: string
+          description: Card expiration (MMYY)
+        processId:
+          type: integer
+          description: Process identifier
+        processToken:
+          type: string
+          description: Process token
+
+    # Response schemas
+    CreatePaymentProcessResponse:
+      type: object
+      description: |
+        Response from createPaymentProcess.
+        **Documentation:** https://grow-il.readme.io/reference/reponse.md
+      properties:
+        status:
+          type: integer
+          description: Success (1) or failure (0)
+          enum: [0, 1]
+        err:
+          oneOf:
+            - type: string
+              description: Empty string on success
+            - $ref: '#/components/schemas/ErrorObject'
+        data:
+          oneOf:
+            - type: string
+              description: Empty string on failure
+            - type: object
+              properties:
+                processId:
+                  type: string
+                  description: Unique process identifier (do not expose to customer)
+                processToken:
+                  type: string
+                  description: Process authentication token (do not expose to customer)
+                url:
+                  type: string
+                  format: uri
+                  description: Payment redirect URL for the customer
+
+    PaymentLinkResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          enum: [0, 1]
+        err:
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/ErrorObject'
+        data:
+          type: object
+          properties:
+            paymentLinkProcessId:
+              type: string
+            paymentLinkProcessToken:
+              type: string
+            url:
+              type: string
+              format: uri
+
+    TransactionResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          enum: [0, 1]
+        err:
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/ErrorObject'
+        data:
+          type: object
+          properties:
+            transactionId:
+              type: integer
+            transactionToken:
+              type: string
+            asmachta:
+              type: string
+
+    RefundResponse:
+      type: object
+      description: |
+        Response from refundTransaction.
+        **Documentation:** https://grow-il.readme.io/reference/response.md
+      properties:
+        status:
+          type: integer
+          enum: [0, 1]
+        err:
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/ErrorObject'
+        data:
+          type: object
+          properties:
+            status:
+              type: string
+              description: Transaction status (Hebrew)
+            statusCode:
+              type: integer
+            transactionTypeId:
+              type: string
+            paymentType:
+              type: string
+            sum:
+              type: string
+            paymentDate:
+              type: string
+              description: Date in DD/M/YY format
+            description:
+              type: string
+            fullName:
+              type: string
+            payerPhone:
+              type: string
+            payerEmail:
+              type: string
+            transactionId:
+              type: string
+            asmachta:
+              type: string
+            cardSuffix:
+              type: string
+            cardType:
+              type: string
+            cardTypeCode:
+              type: string
+            cardBrand:
+              type: string
+            cardBrandCode:
+              type: string
+            cardExp:
+              type: string
+            refundedTransactionId:
+              type: integer
+              description: Original transaction ID being refunded
+
+    TransactionInfoResponse:
+      type: object
+      description: |
+        Response from getTransactionInfo.
+        **Documentation:** https://grow-il.readme.io/reference/response-1.md
+      properties:
+        status:
+          type: integer
+          enum: [0, 1]
+        err:
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/ErrorObject'
+        data:
+          type: object
+
+    PaymentProcessInfoResponse:
+      type: object
+      description: |
+        Response from getPaymentProcessInfo.
+        **Documentation:** https://grow-il.readme.io/reference/response-get-transaction-info-copy.md
+      properties:
+        status:
+          type: integer
+          enum: [0, 1]
+        err:
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/ErrorObject'
+        data:
+          type: object
+
+    GenericSuccessResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          enum: [0, 1]
+        err:
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/ErrorObject'
+        data:
+          type: object
+
+    ErrorObject:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Error code
+        message:
+          type: string
+          description: Error message (may be in Hebrew)
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          enum: [0]
+        err:
+          $ref: '#/components/schemas/ErrorObject'
+        data:
+          type: string
+          description: Empty string on error
+
+    # Server callback schema (webhook payload)
+    ServerCallbackPayload:
+      type: object
+      description: |
+        Payload sent to your notifyUrl webhook.
+        **Documentation:** https://grow-il.readme.io/reference/server-response-1.md
+      properties:
+        transactionId:
+          type: integer
+          description: Transaction ID
+        transactionToken:
+          type: string
+          description: Transaction token
+        TransactionTypeId:
+          type: integer
+          description: Payment method (1=CC, 6=Bit, 13=Apple Pay, 14=Google Pay)
+        paymentType:
+          type: integer
+          description: Payment classification
+        sum:
+          type: number
+          description: Transaction total amount
+        firstPaymentSum:
+          type: number
+          description: Initial payment in installment arrangements
+        periodicalPaymentSum:
+          type: number
+          description: Amount of each subsequent payment
+        paymentsNum:
+          type: integer
+          description: Current payment sequence number
+        allPaymentsNum:
+          type: integer
+          description: Total number of payments
+        paymentDate:
+          type: string
+          description: Payment date (MM/DD/YY)
+        asmachta:
+          type: string
+          description: Approval code from credit card company
+        description:
+          type: string
+          description: Transaction description
+        fullName:
+          type: string
+          description: Cardholder name
+        payerPhone:
+          type: string
+          description: Contact phone number
+        payerEmail:
+          type: string
+          description: Contact email address
+        cardSuffix:
+          type: string
+          description: Last 4 credit card digits
+        cardType:
+          type: string
+          description: Card category designation
+        cardTypeCode:
+          type: integer
+          description: Numeric card category identifier
+        cardBrand:
+          type: string
+          description: Card brand name
+        cardBrandCode:
+          type: integer
+          description: Brand numeric identifier
+        cardExp:
+          type: string
+          description: Card expiration (MMYY)
+        processId:
+          type: integer
+          description: Process identifier
+        processToken:
+          type: string
+          description: Process authentication token
+        cardToken:
+          type: string
+          description: Credit card token (if saveCardToken=1)
+        customFields:
+          type: object
+          description: Custom fields (cField1-9)
+
+# Additional documentation references
+x-documentation:
+  introduction: https://grow-il.readme.io/reference/introduction.md
+  authentication: https://grow-il.readme.io/reference/authentication.md
+  errors: https://grow-il.readme.io/reference/errors.md
+  testing: https://grow-il.readme.io/reference/testing-environment.md
+  production: https://grow-il.readme.io/reference/live-environment.md
+  webhooks: https://grow-il.readme.io/docs/overview-7.md
+  parameterMapping: https://grow-il.readme.io/reference/parameter-mapping.md
+
+# Test card numbers for sandbox
+x-test-cards:
+  description: |
+    Test card numbers for sandbox environment.
+    **Note:** Bit, Google Pay, and Apple Pay do NOT have a test environment - all transactions are real!
+  cards:
+    - number: "4580458045804580"
+      description: "Valid for regular (single payment) transactions only"
+    - number: "4580000000000000"
+      description: "Test card"
+    - number: "4580111111111121"
+      description: "Test card"
