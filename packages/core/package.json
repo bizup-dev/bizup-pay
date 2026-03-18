@@ -1,0 +1,13 @@
+{
+  "name": "@bizup-pay/core",
+  "version": "0.0.1",
+  "description": "Core types and factory for BizUp Pay",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "license": "MIT"
+}

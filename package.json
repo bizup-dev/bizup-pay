@@ -1,0 +1,27 @@
+{
+  "name": "bizup-pay",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Unified Israeli Payment Framework",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint 'packages/*/src/**/*.ts'",
+    "clean": "rm -rf packages/*/dist"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "jsdom": "^29.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

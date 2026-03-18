@@ -1,0 +1,60 @@
+{
+  "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
+  "description": "Order #1234",
+  "type": 320,
+  "number": "0042",
+  "documentDate": "2026-03-18",
+  "creationDate": 1742310000,
+  "status": 0,
+  "lang": "he",
+  "amountDueVat": 85.47,
+  "amountExemptVat": 0,
+  "amountExcludedVat": 0,
+  "amountLocal": 100,
+  "amountOpened": 0,
+  "vat": 14.53,
+  "amount": 100,
+  "currency": "ILS",
+  "currencyRate": 1,
+  "linkedDocuments": [],
+  "vatType": 0,
+  "income": [
+    {
+      "catalogNum": "ITEM-001",
+      "description": "Premium Package",
+      "quantity": 1,
+      "price": 100,
+      "currency": "ILS",
+      "vatType": 0
+    }
+  ],
+  "payment": [
+    {
+      "type": 3,
+      "date": "2026-03-18",
+      "dealType": 1,
+      "cardNum": "1234",
+      "cardType": "visa",
+      "numPayments": 1,
+      "firstPayment": 100,
+      "price": 100,
+      "currency": "ILS"
+    }
+  ],
+  "client": {
+    "id": "c7b3d8e0-5772-4b34-8f52-cc3b0a3b4e57",
+    "name": "Israel Israeli",
+    "taxId": "0123456789",
+    "address": "1 Rothschild Blvd",
+    "city": "Tel Aviv",
+    "zip": "6688101",
+    "country": "IL",
+    "phone": "+972-54-1234567",
+    "emails": ["israel@example.com"]
+  },
+  "data": {
+    "taxAuthorityConfirmationNumber": "12345678",
+    "taxAuthorityConfirmationInitiated": true,
+    "taxAuthorityConfirmationLastError": 0
+  }
+}

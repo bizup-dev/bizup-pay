@@ -1,0 +1,23 @@
+[
+  {
+    "HaveRecipient": true,
+    "Status1": 0,
+    "CardNumber5": "****1111",
+    "Sulac25": "4",
+    "Sum36": 1050,
+    "SumStars52": "10.50",
+    "ApprovalNumber71": "0077123",
+    "NumberOfPayments94": "1",
+    "CardTypeCode60": "1",
+    "CardOwnerName": "John Doe",
+    "CardToken": "tok-550e8400-e29b-41d4",
+    "CardHolderIdentityNumber": "123456789",
+    "DealDate": "2026-03-18T10:30:00Z",
+    "TerminalNumber": 1000,
+    "InternalDealNumber": 219282004,
+    "CouponNumber": "1234",
+    "CardOwnerPhone": "+972-54-1234567",
+    "CardOwnerEmail": "john@example.com",
+    "Uid": "ABC123"
+  }
+]

@@ -1,0 +1,8 @@
+{
+  "ResponseCode": 0,
+  "Description": "Success",
+  "LowProfileId": "550e8400-e29b-41d4-a716-446655440000",
+  "Url": "https://secure.cardcom.solutions/payment/lp/550e8400-e29b-41d4-a716-446655440000",
+  "UrlToPayPal": "https://secure.cardcom.solutions/payment/paypal/550e8400-e29b-41d4-a716-446655440000",
+  "UrlToBit": "https://secure.cardcom.solutions/payment/bit/550e8400-e29b-41d4-a716-446655440000"
+}
