@@ -7,5 +7,5 @@ export type { MorningConfig } from './types.js'
 export type { MorningExtras } from './types.js'
 
 registerProvider('morning', (config) => {
-  return new MorningProvider(config as MorningConfig)
+  return new MorningProvider(config as unknown as MorningConfig)
 })
