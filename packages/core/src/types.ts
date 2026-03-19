@@ -121,6 +121,9 @@ export interface CardcomExtras {
 }
 
 export interface IcountExtras {
+  doctype?: string
+  docnum?: number
+  confirmationCode?: string
   [key: string]: unknown
 }
 

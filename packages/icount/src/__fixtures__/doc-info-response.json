@@ -1,0 +1,33 @@
+{
+  "status": true,
+  "reason": "OK",
+  "doc": {
+    "doctype": "invrec",
+    "docnum": 1001,
+    "client_id": 42,
+    "client_name": "Israel Israeli",
+    "email": "israel@example.com",
+    "phone": "054-1234567",
+    "vat_id": "012345678",
+    "currency_id": 1,
+    "currency_code": "ILS",
+    "total": 79.90,
+    "total_vat": 11.75,
+    "issue_date": "2026-03-19",
+    "created": "2026-03-19T12:00:00",
+    "status": "closed",
+    "cc_confirmation": "0077456",
+    "cc_last4": "0000",
+    "cc_type": "visa",
+    "cc_num_of_payments": 1,
+    "items": [
+      {
+        "description": "T-Shirt",
+        "unitprice": 79.90,
+        "quantity": 1,
+        "total": 79.90
+      }
+    ],
+    "pdf_url": "https://app.icount.co.il/doc/pdf/abc123"
+  }
+}

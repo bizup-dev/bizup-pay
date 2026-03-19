@@ -20,6 +20,7 @@
     { "path": "packages/morning" },
     { "path": "packages/cardcom" },
     { "path": "packages/client" },
+    { "path": "packages/icount" },
     { "path": "packages/mock-server" }
   ]
 }

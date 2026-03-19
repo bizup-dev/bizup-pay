@@ -1,0 +1,17 @@
+{
+  "sale_sid": "n3i5ajunqds80bel9l7gitff24",
+  "sale_uniqid": "c6934c17p2u69bc66a7",
+  "paypage_id": "2",
+  "status": "success",
+  "confirmation_code": "0077456",
+  "sum": 79.90,
+  "currency_code": "ILS",
+  "client_name": "Israel Israeli",
+  "email": "israel@example.com",
+  "phone": "054-1234567",
+  "doctype": "invrec",
+  "docnum": 1001,
+  "cc_last4": "0000",
+  "cc_type": "visa",
+  "num_of_payments": 1
+}
