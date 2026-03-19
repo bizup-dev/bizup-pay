@@ -82,12 +82,6 @@ export function toCardcomLowProfileRequest(
       IsAutoRecurringPayment: true,
       IsCreateToken: true,
     }
-    if (params.recurring.firstAmount !== undefined) {
-      request.AdvancedDefinition.FirstPayment = params.recurring.firstAmount
-    }
-    if (params.recurring.amount !== undefined) {
-      request.AdvancedDefinition.ConstPayment = params.recurring.amount
-    }
     if (params.recurring.totalPayments !== undefined) {
       request.AdvancedDefinition.NumberOfPayments = params.recurring.totalPayments
     }
