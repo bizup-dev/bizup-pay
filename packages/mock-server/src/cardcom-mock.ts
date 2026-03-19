@@ -312,7 +312,10 @@ export class CardcomMockServer implements MockProviderServer {
 <html lang="he" dir="rtl">
 <head><meta charset="utf-8"><title>${title}</title>
 <style>
-  body { font-family: system-ui; max-width: 500px; margin: 2rem auto; padding: 1rem; }
+  body { font-family: system-ui; max-width: 500px; margin: 0 auto; padding: 0; }
+  .provider-banner { background: #dc2626; color: white; text-align: center; padding: 0.6rem 1rem; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px; }
+  .provider-banner span { opacity: 0.7; font-weight: 400; }
+  .content { padding: 1.5rem 1rem; }
   .logo { text-align: center; color: #dc2626; font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem; }
   .amount { font-size: 2rem; font-weight: bold; color: #dc2626; text-align: center; margin: 1rem 0; }
   .desc { text-align: center; color: #666; margin-bottom: 1rem; }
@@ -327,6 +330,8 @@ export class CardcomMockServer implements MockProviderServer {
 </style>
 </head>
 <body>
+  <div class="provider-banner">CARDCOM <span>&mdash; Mock Provider Page</span></div>
+  <div class="content">
   <div class="logo">CARDCOM Mock</div>
   <div class="amount">${session.amount.toFixed(2)} ${session.currency}</div>
   <div class="desc">${session.description}</div>
@@ -339,6 +344,7 @@ export class CardcomMockServer implements MockProviderServer {
     <button type="submit" name="action" value="success" class="pay">${isRecurring ? 'Setup Recurring (Mock)' : 'Pay Now (Mock)'}</button>
     <button type="submit" name="action" value="fail" class="fail">Simulate Failure</button>
   </form>
+  </div>
 </body>
 </html>`)
   }
