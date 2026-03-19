@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, Suspense } from 'react'
 import { BizupPay } from '@bizup-pay/client'
 import type { BizupPaymentSession } from '@bizup-pay/core'
 
-type IntegrationMode = 'iframe' | 'modal' | 'redirect'
+type IntegrationMode = 'iframe' | 'modal' | 'redirect' | 'direct'
 
 const MODE_INFO: Record<IntegrationMode, { label: string; code: string; description: string }> = {
   iframe: {
@@ -22,6 +22,11 @@ const MODE_INFO: Record<IntegrationMode, { label: string; code: string; descript
     label: 'Redirect (Full Page)',
     code: 'window.location.href = session.pageUrl',
     description: 'Customer is redirected to the provider\'s full payment page. After payment, they return via successUrl/failureUrl. Simplest integration, works everywhere.',
+  },
+  direct: {
+    label: 'Direct API',
+    code: 'POST /cc/bill { card, amount }',
+    description: 'Card details are collected on YOUR page and sent directly to the provider API. Full control over UX but requires PCI-DSS compliance. Only supported by iCount.',
   },
 }
 
@@ -46,16 +51,26 @@ function CheckoutContent() {
   const [session, setSession] = useState<BizupPaymentSession | null>(null)
   const [mode, setMode] = useState<IntegrationMode>('iframe')
   const [useMock, setUseMock] = useState(true)
+  const [directCard, setDirectCard] = useState({ number: '4580000000000000', expiry: '12/30', cvv: '123', holderName: 'Israel Israeli' })
+  const [directProcessing, setDirectProcessing] = useState(false)
 
   const redirectStatus = searchParams.get('status')
-  const provider = searchParams.get('provider') as 'morning' | 'cardcom' | null
+  const provider = searchParams.get('provider') as 'morning' | 'cardcom' | 'icount' | null
   const amount = Number(searchParams.get('amount') || 0)
   const description = searchParams.get('description') || ''
   const itemsJson = searchParams.get('items') || '[]'
   const recurringJson = searchParams.get('recurring')
 
-  const providerLabel = provider === 'cardcom' ? 'Cardcom' : 'Morning (Green Invoice)'
+  const providerLabel = provider === 'cardcom' ? 'Cardcom' : provider === 'icount' ? 'iCount' : 'Morning (Green Invoice)'
   const isRecurring = !!recurringJson
+  const isIcount = provider === 'icount'
+
+  // iCount only supports redirect and direct modes
+  useEffect(() => {
+    if (isIcount && (mode === 'iframe' || mode === 'modal')) {
+      setMode('redirect')
+    }
+  }, [isIcount, mode])
 
   // Handle redirect-based status (from redirect mode or fallback)
   useEffect(() => {
@@ -66,7 +81,12 @@ function CheckoutContent() {
 
   // Mount iframe/modal when session is ready
   useEffect(() => {
-    if (step !== 'payment' || !session?.pageUrl) return
+    if (step !== 'payment') return
+
+    // Direct mode: no mounting needed, card form is rendered inline
+    if (mode === 'direct') return
+
+    if (!session?.pageUrl) return
 
     // Redirect mode: navigate away
     if (mode === 'redirect') {
@@ -111,6 +131,13 @@ function CheckoutContent() {
 
   async function createPaymentSession() {
     if (!provider) return
+
+    // Direct mode: skip session creation, go straight to card form
+    if (mode === 'direct') {
+      setStep('payment')
+      return
+    }
+
     setLoading(true)
     setError(null)
 
@@ -134,6 +161,22 @@ function CheckoutContent() {
       setError(err instanceof Error ? err.message : 'Network error')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleDirectPayment() {
+    setDirectProcessing(true)
+    setError(null)
+    try {
+      // For mock: simulate success after a short delay
+      await new Promise(r => setTimeout(r, 800))
+      setStep('success')
+      setMessage('Payment completed successfully! (Direct API - mock)')
+    } catch (err) {
+      setStep('failure')
+      setMessage(err instanceof Error ? err.message : 'Direct payment failed')
+    } finally {
+      setDirectProcessing(false)
     }
   }
 
@@ -213,23 +256,30 @@ function CheckoutContent() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
           <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Integration Mode:</span>
           <div style={{ display: 'inline-flex', background: '#e5e7eb', borderRadius: 6, padding: 2 }}>
-            {(['iframe', 'modal', 'redirect'] as IntegrationMode[]).map(m => (
-              <button
-                key={m}
-                onClick={() => { if (step === 'details') setMode(m) }}
-                disabled={step === 'payment'}
-                style={{
-                  padding: '0.35rem 0.75rem', borderRadius: 5, border: 'none', cursor: step === 'payment' ? 'default' : 'pointer',
-                  fontWeight: 600, fontSize: '0.8rem',
-                  background: mode === m ? '#fff' : 'transparent',
-                  color: mode === m ? '#111' : '#666',
-                  boxShadow: mode === m ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
-                  opacity: step === 'payment' ? 0.6 : 1,
-                }}
-              >
-                {MODE_INFO[m].label}
-              </button>
-            ))}
+            {(['iframe', 'modal', 'redirect', 'direct'] as IntegrationMode[]).map(m => {
+              const disabledByProvider = isIcount && (m === 'iframe' || m === 'modal')
+              const disabledByNonIcount = !isIcount && m === 'direct'
+              const isDisabled = step === 'payment' || disabledByProvider || disabledByNonIcount
+              return (
+                <button
+                  key={m}
+                  onClick={() => { if (!isDisabled) setMode(m) }}
+                  disabled={isDisabled}
+                  title={disabledByProvider ? 'iCount only supports redirect and direct modes' : disabledByNonIcount ? 'Direct API mode is only available for iCount' : undefined}
+                  style={{
+                    padding: '0.35rem 0.75rem', borderRadius: 5, border: 'none',
+                    cursor: isDisabled ? 'default' : 'pointer',
+                    fontWeight: 600, fontSize: '0.8rem',
+                    background: mode === m ? '#fff' : 'transparent',
+                    color: mode === m ? '#111' : '#666',
+                    boxShadow: mode === m ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
+                    opacity: isDisabled ? 0.4 : 1,
+                  }}
+                >
+                  {MODE_INFO[m].label}
+                </button>
+              )
+            })}
           </div>
         </div>
         <div style={{ fontSize: '0.85rem', color: '#555' }}>
@@ -288,7 +338,7 @@ function CheckoutContent() {
         <div style={{ fontSize: '0.85rem', color: '#555' }}>
           {useMock ? (
             <>
-              Using <strong>local mock server</strong> (localhost:4100/4200). Instant responses, no real charges.
+              Using <strong>local mock server</strong> (localhost:4100/4200/4300). Instant responses, no real charges.
               Payment page is a simplified mock form.
             </>
           ) : (
@@ -296,6 +346,8 @@ function CheckoutContent() {
               Using <strong>real provider sandbox</strong>.{' '}
               {provider === 'cardcom' ? (
                 <>Cardcom test terminal 1000 at <code style={{ background: '#f3f4f6', padding: '1px 4px', borderRadius: 3 }}>secure.cardcom.solutions</code>. Test card: <code>4580000000000000</code>, exp 12/30.</>
+              ) : provider === 'icount' ? (
+                <>iCount sandbox at <code style={{ background: '#f3f4f6', padding: '1px 4px', borderRadius: 3 }}>api.icount.co.il</code>. Uses paypage for hosted checkout or cc/bill for direct API.</>
               ) : (
                 <>Morning sandbox at <code style={{ background: '#f3f4f6', padding: '1px 4px', borderRadius: 3 }}>sandbox.d.greeninvoice.co.il</code>. Amounts up to 5,000 ILS succeed; above 5,000 fail.</>
               )}
@@ -308,7 +360,7 @@ function CheckoutContent() {
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
         <StepBadge num={1} label="Customer Details" active={step === 'details'} done={step === 'payment'} />
         <div style={{ flex: '0 0 2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc' }}>&rarr;</div>
-        <StepBadge num={2} label={`Pay via ${provider === 'cardcom' ? 'Cardcom' : 'Morning'}`} active={step === 'payment'} done={false} />
+        <StepBadge num={2} label={`Pay via ${providerLabel}`} active={step === 'payment'} done={false} />
       </div>
 
       {/* Flow explanation */}
@@ -319,12 +371,16 @@ function CheckoutContent() {
             <code style={{ background: '#e0f2fe', padding: '0 4px', borderRadius: 3 }}>createSession()</code>
             {provider === 'cardcom'
               ? <> to pre-fill the Cardcom payment form (<code>AdvancedDefinition.CardOwnerNameValue</code>, etc.)</>
+              : provider === 'icount'
+              ? <> via <code>paypage/generate_sale</code> to create a hosted payment page on iCount</>
               : <> as the <code>client</code> object in the Morning payment form request</>
             }.
             {isRecurring && (
               <> This is a <strong>recurring payment (הוראת קבע)</strong> &mdash;{' '}
                 {provider === 'cardcom'
                   ? <>Cardcom uses <code>Operation: ChargeAndCreateToken</code> with <code>IsAutoRecurringPayment: true</code>.</>
+                  : provider === 'icount'
+                  ? <>iCount uses <code>hk_*</code> params (hk_issue_every, hk_payments) for recurring billing.</>
                   : <>Morning sets up recurring billing internally.</>
                 }
               </>
@@ -381,18 +437,21 @@ function CheckoutContent() {
               onClick={createPaymentSession}
               disabled={loading || !customer.name}
               style={{
-                background: loading ? '#999' : provider === 'cardcom' ? '#dc2626' : '#16a34a',
+                background: loading ? '#999' : provider === 'cardcom' ? '#dc2626' : provider === 'icount' ? '#2563eb' : '#16a34a',
                 color: '#fff', border: 'none', borderRadius: 6, padding: '0.75rem 2rem',
                 cursor: 'pointer', fontWeight: 600, fontSize: '1rem',
               }}
             >
               {loading ? 'Creating session...' : mode === 'redirect'
-                ? `Redirect to ${provider === 'cardcom' ? 'Cardcom' : 'Morning'}`
-                : `Continue to ${provider === 'cardcom' ? 'Cardcom' : 'Morning'} Payment`}
+                ? `Redirect to ${providerLabel}`
+                : mode === 'direct'
+                ? `Pay with ${providerLabel} (Direct)`
+                : `Continue to ${providerLabel} Payment`}
             </button>
             <span style={{ color: '#999', fontSize: '0.85rem' }}>
-              {provider === 'cardcom' ? 'LowProfile/Create API' : 'POST /payments/form API'}
-              {mode === 'redirect' && ' → full page redirect'}
+              {provider === 'cardcom' ? 'LowProfile/Create API' : provider === 'icount' ? 'paypage/generate_sale API' : 'POST /payments/form API'}
+              {mode === 'redirect' && ' \u2192 full page redirect'}
+              {mode === 'direct' && ' \u2192 cc/bill direct charge'}
             </span>
           </div>
         </div>
@@ -436,6 +495,58 @@ function CheckoutContent() {
         <div style={{ textAlign: 'center', padding: '3rem', color: '#666' }}>
           <p style={{ fontSize: '1.1rem', fontWeight: 500 }}>Redirecting to {providerLabel}...</p>
           <p>You will be taken to the payment page. After payment, you&apos;ll return here.</p>
+        </div>
+      )}
+
+      {/* Step 2: Direct API mode — card form on our page */}
+      {step === 'payment' && mode === 'direct' && (
+        <div style={{ background: '#fff', borderRadius: 8, padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h2 style={{ margin: 0, fontSize: '1.1rem' }}>Credit Card Details (Direct API)</h2>
+            <button onClick={() => { setStep('details') }}
+              style={{ background: 'none', border: '1px solid #ddd', borderRadius: 6,
+                padding: '0.35rem 0.75rem', cursor: 'pointer', color: '#666', fontSize: '0.85rem' }}>
+              &larr; Edit Details
+            </button>
+          </div>
+          <p style={{ color: '#666', fontSize: '0.85rem', margin: '0 0 1rem' }}>
+            Card details collected on YOUR page, sent via <code style={{ background: '#f3f4f6', padding: '1px 4px', borderRadius: 3 }}>cc/bill</code> API.
+            Amount: <strong>{amount.toFixed(2)} ILS</strong>
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <FormField label="Card Number" value={directCard.number}
+                onChange={v => setDirectCard(c => ({ ...c, number: v }))} />
+            </div>
+            <FormField label="Expiry (MM/YY)" value={directCard.expiry}
+              onChange={v => setDirectCard(c => ({ ...c, expiry: v }))} />
+            <FormField label="CVV" value={directCard.cvv}
+              onChange={v => setDirectCard(c => ({ ...c, cvv: v }))} />
+            <div style={{ gridColumn: '1 / -1' }}>
+              <FormField label="Cardholder Name" value={directCard.holderName}
+                onChange={v => setDirectCard(c => ({ ...c, holderName: v }))} />
+            </div>
+          </div>
+
+          {error && (
+            <div style={{ background: '#fee', color: '#c00', padding: '0.75rem', borderRadius: 6, marginTop: '1rem', fontSize: '0.9rem' }}>
+              {error}
+            </div>
+          )}
+
+          <div style={{ marginTop: '1.5rem' }}>
+            <button
+              onClick={handleDirectPayment}
+              disabled={directProcessing || !directCard.number || !directCard.cvv}
+              style={{
+                background: directProcessing ? '#999' : '#2563eb',
+                color: '#fff', border: 'none', borderRadius: 6, padding: '0.75rem 2rem',
+                cursor: 'pointer', fontWeight: 600, fontSize: '1rem', width: '100%',
+              }}
+            >
+              {directProcessing ? 'Processing...' : `Pay ${amount.toFixed(2)} ILS (Direct API)`}
+            </button>
+          </div>
         </div>
       )}
     </div>

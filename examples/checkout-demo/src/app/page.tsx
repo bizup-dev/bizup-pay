@@ -59,7 +59,7 @@ export default function ShopPage() {
 
   const total = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
 
-  function goToCheckout(provider: 'morning' | 'cardcom') {
+  function goToCheckout(provider: 'morning' | 'cardcom' | 'icount') {
     if (cart.length === 0) return
     const params = new URLSearchParams({
       provider,
@@ -179,6 +179,12 @@ export default function ShopPage() {
                 style={{ ...checkoutBtnStyle, background: '#dc2626' }}
               >
                 Checkout with Cardcom
+              </button>
+              <button
+                onClick={() => goToCheckout('icount')}
+                style={{ ...checkoutBtnStyle, background: '#2563eb' }}
+              >
+                Checkout with iCount
               </button>
             </div>
           </>

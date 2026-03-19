@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createProvider } from '@bizup-pay/core'
 import '@bizup-pay/morning'
 import '@bizup-pay/cardcom'
+import '@bizup-pay/icount'
 
 const mockConfigs = {
   morning: {
@@ -14,6 +15,12 @@ const mockConfigs = {
     apiName: 'mock-api',
     apiPassword: 'mock-pass',
     baseUrl: process.env.CARDCOM_MOCK_URL || 'http://localhost:4200/api/v11',
+  },
+  icount: {
+    cid: 'mock',
+    accessToken: 'mock-token',
+    paypageId: 1,
+    baseUrl: process.env.ICOUNT_MOCK_URL || 'http://localhost:4300/api/v3.php',
   },
 }
 
@@ -29,6 +36,11 @@ const sandboxConfigs = {
     apiPassword: process.env.CARDCOM_SANDBOX_API_PASSWORD || '',
     // No baseUrl = uses default production URL (sandbox uses same endpoint, different credentials)
   },
+  icount: {
+    cid: 'bizup',
+    accessToken: process.env.ICOUNT_SANDBOX_TOKEN || '',
+    paypageId: 2,
+  },
 }
 
 export async function POST(request: NextRequest) {
@@ -36,7 +48,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { provider: providerName, amount, description, items, mock } = body
 
-    if (!providerName || !['morning', 'cardcom'].includes(providerName)) {
+    if (!providerName || !['morning', 'cardcom', 'icount'].includes(providerName)) {
       return NextResponse.json({ error: 'Invalid provider' }, { status: 400 })
     }
 
@@ -55,6 +67,9 @@ export async function POST(request: NextRequest) {
       }
       if (providerName === 'morning' && !sandboxConfigs.morning.apiKey) {
         return NextResponse.json({ error: 'Morning sandbox credentials not configured. Set MORNING_SANDBOX_API_KEY and MORNING_SANDBOX_API_SECRET in .env.local' }, { status: 400 })
+      }
+      if (providerName === 'icount' && !sandboxConfigs.icount.accessToken) {
+        return NextResponse.json({ error: 'iCount sandbox credentials not configured. Set ICOUNT_SANDBOX_TOKEN in .env.local' }, { status: 400 })
       }
     }
 

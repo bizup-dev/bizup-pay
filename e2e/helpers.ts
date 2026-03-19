@@ -26,22 +26,29 @@ export async function warmup(browser: import('@playwright/test').Browser) {
   await page.request.post('http://localhost:3099/api/checkout', {
     data: { provider: 'cardcom', amount: 1, description: 'warmup', items: [{ name: 'x', price: 1, quantity: 1 }], customer: { name: 'w' } },
   }).catch(() => {})
+  await page.request.post('http://localhost:3099/api/checkout', {
+    data: { provider: 'icount', amount: 1, description: 'warmup', items: [{ name: 'x', price: 1, quantity: 1 }], customer: { name: 'w' } },
+  }).catch(() => {})
   await page.close()
 }
 
 /** Add a T-Shirt to cart and go to checkout with specified provider */
-export async function addItemAndCheckout(page: Page, provider: 'morning' | 'cardcom') {
+export async function addItemAndCheckout(page: Page, provider: 'morning' | 'cardcom' | 'icount') {
   await page.goto('/')
   await page.getByRole('button', { name: 'Add to Cart' }).first().click()
-  const btnName = provider === 'cardcom' ? 'Checkout with Cardcom' : 'Checkout with Morning'
+  const btnName = provider === 'cardcom' ? 'Checkout with Cardcom'
+    : provider === 'icount' ? 'Checkout with iCount'
+    : 'Checkout with Morning'
   await page.getByRole('button', { name: btnName }).click()
   await expect(page).toHaveURL(/\/checkout\?/)
 }
 
 /** Go to subscribe page and pick the Pro plan (monthly) with specified provider */
-export async function subscribeProPlan(page: Page, provider: 'morning' | 'cardcom') {
+export async function subscribeProPlan(page: Page, provider: 'morning' | 'cardcom' | 'icount') {
   await page.goto('/subscribe')
-  const btnName = provider === 'cardcom' ? 'Subscribe via Cardcom' : 'Subscribe via Morning'
+  const btnName = provider === 'cardcom' ? 'Subscribe via Cardcom'
+    : provider === 'icount' ? 'Subscribe via iCount'
+    : 'Subscribe via Morning'
   await page.locator('div:has(> div:text("Most Popular"))').getByRole('button', { name: btnName }).click()
   await expect(page).toHaveURL(/\/checkout\?/)
 }

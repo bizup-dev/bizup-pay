@@ -53,7 +53,7 @@ export default function SubscribePage() {
     return billingCycle === 'yearly' ? 'yearly' : plan.interval
   }
 
-  function subscribe(plan: Plan, provider: 'morning' | 'cardcom') {
+  function subscribe(plan: Plan, provider: 'morning' | 'cardcom' | 'icount') {
     const price = getPrice(plan)
     const interval = getInterval(plan)
     const totalPayments = billingCycle === 'yearly' ? 1 : 12
@@ -166,6 +166,12 @@ export default function SubscribePage() {
                   style={{ ...btnStyle, background: '#16a34a' }}
                 >
                   Subscribe via Morning
+                </button>
+                <button
+                  onClick={() => subscribe(plan, 'icount')}
+                  style={{ ...btnStyle, background: '#2563eb' }}
+                >
+                  Subscribe via iCount
                 </button>
               </div>
             </div>
