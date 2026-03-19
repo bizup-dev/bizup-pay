@@ -8,6 +8,7 @@ export type BizupErrorCode =
   | 'WEBHOOK_PARSE_ERROR'
   | 'TRANSACTION_NOT_FOUND'
   | 'REFUND_FAILED'
+  | 'TOKEN_FAILED'
   | 'UNSUPPORTED_OPERATION'
 
 export class BizupPayError extends Error {

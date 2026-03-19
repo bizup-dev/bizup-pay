@@ -15,12 +15,14 @@ export type {
   CardcomExtras,
   IcountExtras,
   GrowExtras,
+  BizupToken,
 } from './types.js'
 
 export type {
   BizupProviderConfig,
   CreateSessionParams,
   RefundParams,
+  ChargeTokenParams,
   BizupProvider,
 } from './provider.js'
 

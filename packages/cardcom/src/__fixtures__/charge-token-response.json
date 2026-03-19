@@ -1,0 +1,22 @@
+{
+  "ResponseCode": 0,
+  "Description": "Success",
+  "InternalDealNumber": 319382005,
+  "TranzactionId": 319382005,
+  "ApprovalNumber": "0088456",
+  "CardOwnerName": "Israel Israeli",
+  "CardOwnerPhone": "+972-54-1234567",
+  "CardOwnerEmail": "israel@example.com",
+  "CardOwnerIdentityNumber": "0123456789",
+  "Last4CardDigits": "4567",
+  "NumOfPayments": 1,
+  "Amount": 50,
+  "TokenInfo": {
+    "Token": "84cc1f4f-c089-410b-9f93-6437ac9abba6",
+    "TokenExDate": "20281231",
+    "CardYear": 28,
+    "CardMonth": 12,
+    "TokenApprovalNumber": "0088456",
+    "CardOwnerIdentityNumber": "0123456789"
+  }
+}

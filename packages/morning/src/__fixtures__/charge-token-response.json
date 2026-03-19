@@ -1,0 +1,54 @@
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "description": "Monthly subscription charge",
+  "type": 320,
+  "number": "0099",
+  "documentDate": "2026-03-19",
+  "creationDate": 1742396400,
+  "status": 0,
+  "lang": "he",
+  "amountDueVat": 42.74,
+  "amountExemptVat": 0,
+  "amountExcludedVat": 0,
+  "amountLocal": 50,
+  "amountOpened": 0,
+  "vat": 7.26,
+  "amount": 50,
+  "currency": "ILS",
+  "currencyRate": 1,
+  "linkedDocuments": [],
+  "vatType": 0,
+  "income": [
+    {
+      "description": "Monthly subscription charge",
+      "quantity": 1,
+      "price": 50,
+      "currency": "ILS",
+      "vatType": 0
+    }
+  ],
+  "payment": [
+    {
+      "type": 3,
+      "date": "2026-03-19",
+      "dealType": 1,
+      "cardNum": "4567",
+      "cardType": "visa",
+      "numPayments": 1,
+      "firstPayment": 50,
+      "price": 50,
+      "currency": "ILS"
+    }
+  ],
+  "client": {
+    "id": "c7b3d8e0-5772-4b34-8f52-cc3b0a3b4e57",
+    "name": "Israel Israeli",
+    "taxId": "0123456789",
+    "address": "1 Rothschild Blvd",
+    "city": "Tel Aviv",
+    "zip": "6688101",
+    "country": "IL",
+    "phone": "+972-54-1234567",
+    "emails": ["israel@example.com"]
+  }
+}

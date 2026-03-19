@@ -129,4 +129,22 @@ export interface MorningCreateDocumentRequest {
   }>
 }
 
+export interface MorningChargeTokenRequest {
+  description: string
+  type: number
+  lang: 'he' | 'en'
+  currency: string
+  vatType: number
+  amount: number
+  maxPayments?: number
+  notifyUrl?: string
+  income: Array<{
+    description: string
+    quantity: number
+    price: number
+    currency: string
+    vatType: number
+  }>
+}
+
 export type { MorningExtras }

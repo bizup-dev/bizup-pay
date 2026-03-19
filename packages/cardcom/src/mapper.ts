@@ -4,6 +4,7 @@ import type {
   BizupWebhookEvent,
   BizupCustomer,
   CreateSessionParams,
+  ChargeTokenParams,
   CardBrand,
   TransactionStatus,
 } from '@bizup-pay/core'
@@ -12,6 +13,8 @@ import type {
   CardcomLowProfileCreateResponse,
   CardcomTransactionInfo,
   CardcomWebhookPayload,
+  CardcomChargeTokenRequest,
+  CardcomChargeTokenResponse,
 } from './types.js'
 
 const CURRENCY_TO_COIN_ID: Record<string, number> = {
@@ -189,5 +192,68 @@ export function fromCardcomWebhook(
     type: isSuccess ? 'payment.completed' : 'payment.failed',
     transaction,
     timestamp: txInfo?.CreateDate ? new Date(txInfo.CreateDate) : new Date(),
+  }
+}
+
+export function toCardcomCreateTokenRequest(
+  params: CreateSessionParams,
+  config: { terminalNumber: number; apiName: string },
+): CardcomLowProfileCreateRequest {
+  const request = toCardcomLowProfileRequest(params, config)
+  request.Operation = 'CreateTokenOnly'
+  return request
+}
+
+export function toCardcomChargeTokenRequest(
+  params: ChargeTokenParams,
+  config: { terminalNumber: number; apiName: string },
+): CardcomChargeTokenRequest {
+  const request: CardcomChargeTokenRequest = {
+    TerminalNumber: config.terminalNumber,
+    ApiName: config.apiName,
+    Amount: params.amount,
+    Token: params.tokenId,
+    ISOCoinId: CURRENCY_TO_COIN_ID[params.currency ?? 'ILS'] ?? 1,
+  }
+
+  if (params.installments) {
+    request.NumOfPayments = params.installments
+  }
+
+  return request
+}
+
+export function fromCardcomChargeTokenResponse(
+  response: CardcomChargeTokenResponse,
+): BizupTransaction {
+  const customer: BizupCustomer | undefined = response.CardOwnerName
+    ? {
+        name: response.CardOwnerName,
+        email: response.CardOwnerEmail,
+        phone: response.CardOwnerPhone,
+        taxId: response.CardOwnerIdentityNumber,
+      }
+    : undefined
+
+  return {
+    id: String(response.InternalDealNumber ?? ''),
+    providerTransactionId: String(response.InternalDealNumber ?? ''),
+    provider: 'cardcom',
+    amount: response.Amount ?? 0,
+    currency: 'ILS',
+    status: 'approved',
+    paymentMethod: 'credit_card',
+    cardLastFour: response.Last4CardDigits,
+    installments: response.NumOfPayments ?? 1,
+    customer,
+    createdAt: new Date(),
+    cardcom: {
+      approvalNumber: response.ApprovalNumber ?? '',
+      dealType: 'ChargeToken',
+      lowProfileId: '',
+      token: response.TokenInfo?.Token,
+      tokenExpiry: response.TokenInfo?.TokenExDate,
+    },
+    raw: response,
   }
 }

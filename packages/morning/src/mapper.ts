@@ -6,6 +6,7 @@ import type {
   BizupCustomer,
   CreateSessionParams,
   RefundParams,
+  ChargeTokenParams,
   PaymentMethod,
   CardBrand,
   TransactionStatus,
@@ -15,6 +16,7 @@ import type {
   MorningPaymentFormResponse,
   MorningDocument,
   MorningDownloadLinks,
+  MorningChargeTokenRequest,
 } from './types.js'
 
 const MORNING_PAYMENT_TYPE_MAP: Record<number, PaymentMethod> = {
@@ -222,4 +224,39 @@ export function toMorningRefundRequest(
       },
     ],
   }
+}
+
+export function toMorningChargeTokenRequest(
+  params: ChargeTokenParams,
+): MorningChargeTokenRequest {
+  const currency = params.currency ?? 'ILS'
+  const vatType = params.vatType ?? 0
+
+  const request: MorningChargeTokenRequest = {
+    description: params.description,
+    type: 320,
+    lang: 'he',
+    currency,
+    vatType,
+    amount: params.amount,
+    income: [
+      {
+        description: params.description,
+        quantity: 1,
+        price: params.amount,
+        currency,
+        vatType,
+      },
+    ],
+  }
+
+  if (params.installments) {
+    request.maxPayments = params.installments
+  }
+
+  if (params.webhookUrl) {
+    request.notifyUrl = params.webhookUrl
+  }
+
+  return request
 }

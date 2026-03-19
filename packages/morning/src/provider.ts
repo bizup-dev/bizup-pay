@@ -2,6 +2,7 @@ import type {
   BizupProvider,
   CreateSessionParams,
   RefundParams,
+  ChargeTokenParams,
   BizupPaymentSession,
   BizupTransaction,
   BizupRefund,
@@ -15,6 +16,7 @@ import {
   fromMorningDocument,
   fromMorningWebhook,
   toMorningRefundRequest,
+  toMorningChargeTokenRequest,
 } from './mapper.js'
 
 export type HttpClient = (
@@ -139,6 +141,20 @@ export class MorningProvider implements BizupProvider {
       status: 'completed',
       createdAt: new Date(creditNote.creationDate * 1000),
     }
+  }
+
+  async createToken(params: CreateSessionParams): Promise<BizupPaymentSession> {
+    return this.createSession(params)
+  }
+
+  async chargeToken(params: ChargeTokenParams): Promise<BizupTransaction> {
+    const requestBody = toMorningChargeTokenRequest(params)
+    const doc = await this.request<MorningDocument>(
+      'POST',
+      `/payments/tokens/${params.tokenId}/charge`,
+      requestBody,
+    )
+    return fromMorningDocument(doc)
   }
 
   async parseWebhook(

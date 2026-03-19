@@ -126,4 +126,36 @@ export interface CardcomWebhookPayload {
   Country?: string
 }
 
+export interface CardcomChargeTokenRequest {
+  TerminalNumber: number
+  ApiName: string
+  Amount: number
+  Token: string
+  ISOCoinId?: number
+  NumOfPayments?: number
+}
+
+export interface CardcomChargeTokenResponse {
+  ResponseCode: number
+  Description: string
+  InternalDealNumber?: number
+  TranzactionId?: number
+  ApprovalNumber?: string
+  CardOwnerName?: string
+  CardOwnerPhone?: string
+  CardOwnerEmail?: string
+  CardOwnerIdentityNumber?: string
+  Last4CardDigits?: string
+  NumOfPayments?: number
+  Amount?: number
+  TokenInfo?: {
+    Token?: string
+    TokenExDate?: string
+    CardYear?: number
+    CardMonth?: number
+    TokenApprovalNumber?: string
+    CardOwnerIdentityNumber?: string
+  }
+}
+
 export type { CardcomExtras }

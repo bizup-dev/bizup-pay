@@ -31,6 +31,9 @@ export type WebhookEventType =
   | 'payment.completed'
   | 'payment.failed'
   | 'payment.cancelled'
+  | 'token.created'
+  | 'token.charge.completed'
+  | 'token.charge.failed'
 
 export interface BizupCustomer {
   name: string
@@ -120,4 +123,14 @@ export interface IcountExtras {
 
 export interface GrowExtras {
   [key: string]: unknown
+}
+
+export interface BizupToken {
+  id: string
+  provider: ProviderName
+  cardLastFour?: string
+  cardBrand?: CardBrand
+  expiresAt?: string
+  customer?: BizupCustomer
+  raw: unknown
 }

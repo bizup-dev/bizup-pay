@@ -2,6 +2,7 @@ import type {
   BizupProvider,
   CreateSessionParams,
   RefundParams,
+  ChargeTokenParams,
   BizupPaymentSession,
   BizupTransaction,
   BizupRefund,
@@ -14,12 +15,16 @@ import type {
   CardcomTransactionInfo,
   CardcomRefundResponse,
   CardcomWebhookPayload,
+  CardcomChargeTokenResponse,
 } from './types.js'
 import {
   toCardcomLowProfileRequest,
   fromCardcomLowProfileResponse,
   fromCardcomTransactionInfo,
   fromCardcomWebhook,
+  toCardcomCreateTokenRequest,
+  toCardcomChargeTokenRequest,
+  fromCardcomChargeTokenResponse,
 } from './mapper.js'
 
 export type HttpClient = (
@@ -162,6 +167,52 @@ export class CardcomProvider implements BizupProvider {
       status: 'completed',
       createdAt: new Date(),
     }
+  }
+
+  async createToken(params: CreateSessionParams): Promise<BizupPaymentSession> {
+    const requestBody = toCardcomCreateTokenRequest(params, {
+      terminalNumber: this.terminalNumber,
+      apiName: this.apiName,
+    })
+
+    const response = await this.request<CardcomLowProfileCreateResponse>(
+      '/LowProfile/Create',
+      requestBody,
+    )
+
+    if (response.ResponseCode !== 0) {
+      throw new BizupPayError(
+        `Cardcom LowProfile/Create failed: ${response.Description}`,
+        'PROVIDER_ERROR',
+        'cardcom',
+        response,
+      )
+    }
+
+    return fromCardcomLowProfileResponse(response, params)
+  }
+
+  async chargeToken(params: ChargeTokenParams): Promise<BizupTransaction> {
+    const requestBody = toCardcomChargeTokenRequest(params, {
+      terminalNumber: this.terminalNumber,
+      apiName: this.apiName,
+    })
+
+    const response = await this.request<CardcomChargeTokenResponse>(
+      '/Transactions/Transaction',
+      requestBody,
+    )
+
+    if (response.ResponseCode !== 0) {
+      throw new BizupPayError(
+        `Cardcom token charge failed: ${response.Description}`,
+        'TOKEN_FAILED',
+        'cardcom',
+        response,
+      )
+    }
+
+    return fromCardcomChargeTokenResponse(response)
   }
 
   async parseWebhook(
