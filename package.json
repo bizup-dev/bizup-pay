@@ -4,7 +4,8 @@
   "version": "0.0.1",
   "description": "Unified Israeli Payment Framework",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "examples/*"
   ],
   "scripts": {
     "build": "tsc --build",

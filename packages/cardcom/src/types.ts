@@ -25,6 +25,11 @@ export interface CardcomLowProfileCreateRequest {
     Name: string
     Email?: string
     Phone?: string
+    Products?: Array<{
+      Description: string
+      UnitCost: number
+      Quantity?: number
+    }>
   }
 }
 

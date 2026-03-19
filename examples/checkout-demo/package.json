@@ -1,0 +1,25 @@
+{
+  "name": "checkout-demo",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3099",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@bizup-pay/core": "0.0.1",
+    "@bizup-pay/morning": "0.0.1",
+    "@bizup-pay/cardcom": "0.0.1",
+    "@bizup-pay/client": "0.0.1",
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0"
+  }
+}

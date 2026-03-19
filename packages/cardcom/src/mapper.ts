@@ -67,12 +67,19 @@ export function toCardcomLowProfileRequest(
     request.MaxPayments = params.installments.fixed
   }
 
-  if (params.customer) {
-    request.Document = {
-      Name: params.customer.name,
-      Email: params.customer.email,
-      Phone: params.customer.phone,
-    }
+  const products = params.metadata?.['_products']
+    ? JSON.parse(params.metadata['_products']) as Array<{ description: string; unitCost: number; quantity?: number }>
+    : [{ description: params.description, unitCost: params.amount }]
+
+  request.Document = {
+    Name: params.customer?.name ?? '',
+    Email: params.customer?.email,
+    Phone: params.customer?.phone,
+    Products: products.map(p => ({
+      Description: p.description,
+      UnitCost: p.unitCost,
+      Quantity: p.quantity,
+    })),
   }
 
   return request
