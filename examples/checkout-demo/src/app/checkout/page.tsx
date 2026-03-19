@@ -45,6 +45,7 @@ function CheckoutContent() {
   const [customer, setCustomer] = useState(MOCK_CUSTOMER)
   const [session, setSession] = useState<BizupPaymentSession | null>(null)
   const [mode, setMode] = useState<IntegrationMode>('iframe')
+  const [useMock, setUseMock] = useState(true)
 
   const redirectStatus = searchParams.get('status')
   const provider = searchParams.get('provider') as 'morning' | 'cardcom' | null
@@ -119,7 +120,7 @@ function CheckoutContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          provider, amount, description, items, customer,
+          provider, amount, description, items, customer, mock: useMock,
           ...(recurringJson ? { recurring: JSON.parse(recurringJson) } : {}),
         }),
       })
@@ -227,6 +228,71 @@ function CheckoutContent() {
           <code style={{ background: '#f3f4f6', padding: '2px 6px', borderRadius: 4, fontSize: '0.8rem' }}>{modeInfo.code}</code>
           <span style={{ margin: '0 0.5rem', color: '#ccc' }}>|</span>
           {modeInfo.description}
+        </div>
+      </div>
+
+      {/* Backend Toggle: Mock vs Sandbox */}
+      <div style={{ background: '#fff', borderRadius: 8, padding: '1rem 1.25rem', marginBottom: '1rem',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+          <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Backend:</span>
+          <div style={{ display: 'inline-flex', background: '#e5e7eb', borderRadius: 6, padding: 2 }}>
+            <button
+              onClick={() => { if (step === 'details') setUseMock(true) }}
+              disabled={step === 'payment'}
+              style={{
+                padding: '0.35rem 0.75rem', borderRadius: 5, border: 'none',
+                cursor: step === 'payment' ? 'default' : 'pointer',
+                fontWeight: 600, fontSize: '0.8rem',
+                background: useMock ? '#fff' : 'transparent',
+                color: useMock ? '#111' : '#666',
+                boxShadow: useMock ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
+                opacity: step === 'payment' ? 0.6 : 1,
+              }}
+            >
+              Mock Server
+            </button>
+            <button
+              onClick={() => { if (step === 'details') setUseMock(false) }}
+              disabled={step === 'payment'}
+              style={{
+                padding: '0.35rem 0.75rem', borderRadius: 5, border: 'none',
+                cursor: step === 'payment' ? 'default' : 'pointer',
+                fontWeight: 600, fontSize: '0.8rem',
+                background: !useMock ? '#fff' : 'transparent',
+                color: !useMock ? '#111' : '#666',
+                boxShadow: !useMock ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
+                opacity: step === 'payment' ? 0.6 : 1,
+              }}
+            >
+              Provider Sandbox
+            </button>
+          </div>
+          {!useMock && (
+            <span style={{
+              background: '#fef3c7', color: '#92400e', padding: '0.2rem 0.6rem',
+              borderRadius: 4, fontSize: '0.75rem', fontWeight: 600,
+            }}>
+              LIVE API
+            </span>
+          )}
+        </div>
+        <div style={{ fontSize: '0.85rem', color: '#555' }}>
+          {useMock ? (
+            <>
+              Using <strong>local mock server</strong> (localhost:4100/4200). Instant responses, no real charges.
+              Payment page is a simplified mock form.
+            </>
+          ) : (
+            <>
+              Using <strong>real provider sandbox</strong>.{' '}
+              {provider === 'cardcom' ? (
+                <>Cardcom test terminal 1000 at <code style={{ background: '#f3f4f6', padding: '1px 4px', borderRadius: 3 }}>secure.cardcom.solutions</code>. Test card: <code>4580000000000000</code>, exp 12/30.</>
+              ) : (
+                <>Morning sandbox at <code style={{ background: '#f3f4f6', padding: '1px 4px', borderRadius: 3 }}>sandbox.d.greeninvoice.co.il</code>. Amounts up to 5,000 ILS succeed; above 5,000 fail.</>
+              )}
+            </>
+          )}
         </div>
       </div>
 

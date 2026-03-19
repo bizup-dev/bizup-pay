@@ -3,24 +3,38 @@ import { createProvider } from '@bizup-pay/core'
 import '@bizup-pay/morning'
 import '@bizup-pay/cardcom'
 
-const providerConfigs = {
+const mockConfigs = {
   morning: {
-    apiKey: process.env.MORNING_API_KEY || 'mock-key',
-    apiSecret: process.env.MORNING_API_SECRET || 'mock-secret',
-    ...(process.env.MORNING_BASE_URL ? { baseUrl: process.env.MORNING_BASE_URL } : {}),
+    apiKey: 'mock-key',
+    apiSecret: 'mock-secret',
+    baseUrl: process.env.MORNING_MOCK_URL || 'http://localhost:4100/api/v1',
   },
   cardcom: {
-    terminalNumber: Number(process.env.CARDCOM_TERMINAL_NUMBER || 1000),
-    apiName: process.env.CARDCOM_API_NAME || 'mock-api',
-    apiPassword: process.env.CARDCOM_API_PASSWORD || 'mock-pass',
-    ...(process.env.CARDCOM_BASE_URL ? { baseUrl: process.env.CARDCOM_BASE_URL } : {}),
+    terminalNumber: 1000,
+    apiName: 'mock-api',
+    apiPassword: 'mock-pass',
+    baseUrl: process.env.CARDCOM_MOCK_URL || 'http://localhost:4200/api/v11',
   },
-} as const
+}
+
+const sandboxConfigs = {
+  morning: {
+    apiKey: process.env.MORNING_SANDBOX_API_KEY || '',
+    apiSecret: process.env.MORNING_SANDBOX_API_SECRET || '',
+    baseUrl: 'https://sandbox.d.greeninvoice.co.il/api/v1',
+  },
+  cardcom: {
+    terminalNumber: Number(process.env.CARDCOM_SANDBOX_TERMINAL || 1000),
+    apiName: process.env.CARDCOM_SANDBOX_API_NAME || '',
+    apiPassword: process.env.CARDCOM_SANDBOX_API_PASSWORD || '',
+    // No baseUrl = uses default production URL (sandbox uses same endpoint, different credentials)
+  },
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { provider: providerName, amount, description, items } = body
+    const { provider: providerName, amount, description, items, mock } = body
 
     if (!providerName || !['morning', 'cardcom'].includes(providerName)) {
       return NextResponse.json({ error: 'Invalid provider' }, { status: 400 })
@@ -30,8 +44,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid amount' }, { status: 400 })
     }
 
+    const useMock = mock !== false
+    const configs = useMock ? mockConfigs : sandboxConfigs
+    const config = configs[providerName as keyof typeof configs]
+
+    // Validate sandbox credentials exist when not using mock
+    if (!useMock) {
+      if (providerName === 'cardcom' && !sandboxConfigs.cardcom.apiName) {
+        return NextResponse.json({ error: 'Cardcom sandbox credentials not configured. Set CARDCOM_SANDBOX_API_NAME and CARDCOM_SANDBOX_API_PASSWORD in .env.local' }, { status: 400 })
+      }
+      if (providerName === 'morning' && !sandboxConfigs.morning.apiKey) {
+        return NextResponse.json({ error: 'Morning sandbox credentials not configured. Set MORNING_SANDBOX_API_KEY and MORNING_SANDBOX_API_SECRET in .env.local' }, { status: 400 })
+      }
+    }
+
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3099'
-    const config = providerConfigs[providerName as keyof typeof providerConfigs]
     const provider = createProvider(providerName, config)
 
     const { recurring, customer } = body as {
@@ -68,7 +95,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({ session })
+    return NextResponse.json({ session, mock: useMock })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Checkout failed'
     console.error('Checkout error:', err)
