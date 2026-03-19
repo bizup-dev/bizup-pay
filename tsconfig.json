@@ -19,6 +19,7 @@
     { "path": "packages/core" },
     { "path": "packages/morning" },
     { "path": "packages/cardcom" },
-    { "path": "packages/client" }
+    { "path": "packages/client" },
+    { "path": "packages/mock-server" }
   ]
 }

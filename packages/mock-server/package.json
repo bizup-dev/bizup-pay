@@ -1,0 +1,17 @@
+{
+  "name": "@bizup-pay/mock-server",
+  "version": "0.0.1",
+  "description": "Mock payment provider servers for testing BizUp Pay",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "start": "node dist/standalone.js"
+  },
+  "dependencies": {
+    "@bizup-pay/core": "0.0.1"
+  },
+  "license": "MIT"
+}

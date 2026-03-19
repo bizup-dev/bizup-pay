@@ -5,8 +5,9 @@ import '@bizup-pay/cardcom'
 
 const providerConfigs = {
   morning: {
-    apiKey: process.env.MORNING_API_KEY!,
-    apiSecret: process.env.MORNING_API_SECRET!,
+    apiKey: process.env.MORNING_API_KEY || 'mock-key',
+    apiSecret: process.env.MORNING_API_SECRET || 'mock-secret',
+    ...(process.env.MORNING_BASE_URL ? { baseUrl: process.env.MORNING_BASE_URL } : {}),
   },
   cardcom: {
     terminalNumber: Number(process.env.CARDCOM_TERMINAL_NUMBER),

@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 3099",
+    "mock": "node ../../packages/mock-server/dist/standalone.js",
+    "dev:mock": "node ../../packages/mock-server/dist/standalone.js & next dev --port 3099",
     "build": "next build",
     "start": "next start"
   },
