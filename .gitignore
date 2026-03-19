@@ -4,3 +4,15 @@ dist/
 .env
 .env.*
 .next/
+e2e/results/
+e2e/report/
+playwright-report/
+playwright.config.js
+playwright.config.js.map
+playwright.config.d.ts
+playwright.config.d.ts.map
+next-env.d.ts
+**/__tests__/*.js
+**/__tests__/*.js.map
+**/__tests__/*.d.ts
+**/__tests__/*.d.ts.map
