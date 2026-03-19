@@ -26,8 +26,6 @@ interface CartItem {
 export default function ShopPage() {
   const router = useRouter()
   const [cart, setCart] = useState<CartItem[]>([])
-  const [loading, setLoading] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
 
   function addToCart(product: Product) {
     setCart(prev => {
@@ -61,48 +59,19 @@ export default function ShopPage() {
 
   const total = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
 
-  async function checkout(provider: 'morning' | 'cardcom') {
+  function goToCheckout(provider: 'morning' | 'cardcom') {
     if (cart.length === 0) return
-    setLoading(provider)
-    setError(null)
-
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          provider,
-          items: cart.map(item => ({
-            name: item.product.name,
-            price: item.product.price,
-            quantity: item.quantity,
-          })),
-          amount: total,
-          description: `Order: ${cart.map(i => `${i.quantity}x ${i.product.name}`).join(', ')}`,
-        }),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error || 'Checkout failed')
-        return
-      }
-
-      // Navigate to checkout page with session data
-      const params = new URLSearchParams({
-        sessionId: data.session.id,
-        pageUrl: data.session.pageUrl,
-        provider: data.session.provider,
-        amount: String(data.session.amount),
-        description: data.session.description,
-      })
-      router.push(`/checkout?${params.toString()}`)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Network error')
-    } finally {
-      setLoading(null)
-    }
+    const params = new URLSearchParams({
+      provider,
+      amount: String(total),
+      description: `Order: ${cart.map(i => `${i.quantity}x ${i.product.name}`).join(', ')}`,
+      items: JSON.stringify(cart.map(item => ({
+        name: item.product.name,
+        price: item.product.price,
+        quantity: item.quantity,
+      }))),
+    })
+    router.push(`/checkout?${params.toString()}`)
   }
 
   return (
@@ -143,13 +112,8 @@ export default function ShopPage() {
             <button
               onClick={() => addToCart(product)}
               style={{
-                background: '#0070f3',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 6,
-                padding: '0.5rem 1rem',
-                cursor: 'pointer',
-                fontWeight: 500,
+                background: '#0070f3', color: '#fff', border: 'none', borderRadius: 6,
+                padding: '0.5rem 1rem', cursor: 'pointer', fontWeight: 500,
               }}
             >
               Add to Cart
@@ -170,11 +134,8 @@ export default function ShopPage() {
               <div
                 key={item.product.id}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '0.75rem 0',
-                  borderBottom: '1px solid #eee',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '0.75rem 0', borderBottom: '1px solid #eee',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -205,33 +166,19 @@ export default function ShopPage() {
               <span>{total.toFixed(2)} ILS</span>
             </div>
 
-            {error && (
-              <div style={{ background: '#fee', color: '#c00', padding: '0.75rem', borderRadius: 6, marginBottom: '1rem', fontSize: '0.9rem' }}>
-                {error}
-              </div>
-            )}
-
             {/* Checkout Buttons */}
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
               <button
-                onClick={() => checkout('morning')}
-                disabled={loading !== null}
-                style={{
-                  ...checkoutBtnStyle,
-                  background: loading === 'morning' ? '#999' : '#16a34a',
-                }}
+                onClick={() => goToCheckout('morning')}
+                style={{ ...checkoutBtnStyle, background: '#16a34a' }}
               >
-                {loading === 'morning' ? 'Creating session...' : 'Pay with Morning (Green Invoice)'}
+                Checkout with Morning
               </button>
               <button
-                onClick={() => checkout('cardcom')}
-                disabled={loading !== null}
-                style={{
-                  ...checkoutBtnStyle,
-                  background: loading === 'cardcom' ? '#999' : '#dc2626',
-                }}
+                onClick={() => goToCheckout('cardcom')}
+                style={{ ...checkoutBtnStyle, background: '#dc2626' }}
               >
-                {loading === 'cardcom' ? 'Creating session...' : 'Pay with Cardcom'}
+                Checkout with Cardcom
               </button>
             </div>
           </>
@@ -242,25 +189,12 @@ export default function ShopPage() {
 }
 
 const qtyBtnStyle: React.CSSProperties = {
-  width: 28,
-  height: 28,
-  border: '1px solid #ddd',
-  borderRadius: 4,
-  background: '#fff',
-  cursor: 'pointer',
-  fontSize: '1rem',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+  width: 28, height: 28, border: '1px solid #ddd', borderRadius: 4,
+  background: '#fff', cursor: 'pointer', fontSize: '1rem',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
 }
 
 const checkoutBtnStyle: React.CSSProperties = {
-  flex: 1,
-  color: '#fff',
-  border: 'none',
-  borderRadius: 6,
-  padding: '0.75rem 1rem',
-  cursor: 'pointer',
-  fontWeight: 600,
-  fontSize: '0.95rem',
+  flex: 1, color: '#fff', border: 'none', borderRadius: 6,
+  padding: '0.75rem 1rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem',
 }

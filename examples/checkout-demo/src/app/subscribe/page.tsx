@@ -43,8 +43,6 @@ const PLANS: Plan[] = [
 
 export default function SubscribePage() {
   const router = useRouter()
-  const [loading, setLoading] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
 
   function getPrice(plan: Plan) {
@@ -55,50 +53,19 @@ export default function SubscribePage() {
     return billingCycle === 'yearly' ? 'yearly' : plan.interval
   }
 
-  async function subscribe(plan: Plan, provider: 'morning' | 'cardcom') {
-    setLoading(`${plan.id}-${provider}`)
-    setError(null)
-
+  function subscribe(plan: Plan, provider: 'morning' | 'cardcom') {
     const price = getPrice(plan)
     const interval = getInterval(plan)
     const totalPayments = billingCycle === 'yearly' ? 1 : 12
 
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          provider,
-          amount: price,
-          description: `${plan.name} Plan - ${interval} subscription`,
-          items: [{ name: `${plan.name} Plan (${interval})`, price, quantity: 1 }],
-          recurring: {
-            interval,
-            totalPayments,
-            amount: price,
-          },
-        }),
-      })
-
-      const data = await res.json()
-      if (!res.ok) {
-        setError(data.error || 'Subscription failed')
-        return
-      }
-
-      const params = new URLSearchParams({
-        sessionId: data.session.id,
-        pageUrl: data.session.pageUrl,
-        provider: data.session.provider,
-        amount: String(data.session.amount),
-        description: data.session.description,
-      })
-      router.push(`/checkout?${params.toString()}`)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Network error')
-    } finally {
-      setLoading(null)
-    }
+    const params = new URLSearchParams({
+      provider,
+      amount: String(price),
+      description: `${plan.name} Plan - ${interval} subscription`,
+      items: JSON.stringify([{ name: `${plan.name} Plan (${interval})`, price, quantity: 1 }]),
+      recurring: JSON.stringify({ interval, totalPayments, amount: price }),
+    })
+    router.push(`/checkout?${params.toString()}`)
   }
 
   return (
@@ -140,18 +107,11 @@ export default function SubscribePage() {
         </div>
       </div>
 
-      {error && (
-        <div style={{ background: '#fee', color: '#c00', padding: '0.75rem', borderRadius: 6, marginBottom: '1rem', textAlign: 'center' }}>
-          {error}
-        </div>
-      )}
-
       {/* Plans grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
         {PLANS.map(plan => {
           const price = getPrice(plan)
           const interval = getInterval(plan)
-          const isLoading = loading?.startsWith(plan.id)
 
           return (
             <div
@@ -197,23 +157,15 @@ export default function SubscribePage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <button
                   onClick={() => subscribe(plan, 'cardcom')}
-                  disabled={isLoading}
-                  style={{
-                    ...btnStyle,
-                    background: isLoading && loading === `${plan.id}-cardcom` ? '#999' : '#dc2626',
-                  }}
+                  style={{ ...btnStyle, background: '#dc2626' }}
                 >
-                  {loading === `${plan.id}-cardcom` ? 'Setting up...' : 'Subscribe via Cardcom'}
+                  Subscribe via Cardcom
                 </button>
                 <button
                   onClick={() => subscribe(plan, 'morning')}
-                  disabled={isLoading}
-                  style={{
-                    ...btnStyle,
-                    background: isLoading && loading === `${plan.id}-morning` ? '#999' : '#16a34a',
-                  }}
+                  style={{ ...btnStyle, background: '#16a34a' }}
                 >
-                  {loading === `${plan.id}-morning` ? 'Setting up...' : 'Subscribe via Morning'}
+                  Subscribe via Morning
                 </button>
               </div>
             </div>

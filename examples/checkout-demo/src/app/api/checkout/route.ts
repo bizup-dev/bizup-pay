@@ -34,7 +34,10 @@ export async function POST(request: NextRequest) {
     const config = providerConfigs[providerName as keyof typeof providerConfigs]
     const provider = createProvider(providerName, config)
 
-    const { recurring } = body as { recurring?: { interval: string; totalPayments?: number; amount?: number } }
+    const { recurring, customer } = body as {
+      recurring?: { interval: string; totalPayments?: number; amount?: number }
+      customer?: { name: string; email?: string; phone?: string; taxId?: string }
+    }
 
     const session = await provider.createSession({
       amount,
@@ -44,10 +47,7 @@ export async function POST(request: NextRequest) {
       failureUrl: `${appUrl}/checkout?status=failure`,
       cancelUrl: `${appUrl}/checkout?status=cancelled`,
       webhookUrl: `${appUrl}/api/webhook`,
-      customer: {
-        name: 'Demo Customer',
-        email: 'demo@bizup.dev',
-      },
+      customer: customer ?? { name: 'Guest' },
       language: 'he',
       ...(recurring ? {
         recurring: {

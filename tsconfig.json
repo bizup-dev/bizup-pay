@@ -14,7 +14,7 @@
     "isolatedModules": true,
     "composite": true
   },
-  "exclude": ["vitest.config.ts", "examples/**"],
+  "exclude": ["vitest.config.ts", "examples/**", "e2e/**", "playwright.config.ts"],
   "references": [
     { "path": "packages/core" },
     { "path": "packages/morning" },
