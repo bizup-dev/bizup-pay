@@ -362,12 +362,25 @@ export class MorningMockServer implements MockProviderServer {
       }
     }
 
-    // Redirect to success/failure URL
+    // Notify parent via postMessage (for iframe embed) then redirect
     const redirectUrl = fail
       ? session.failureUrl ?? session.successUrl
       : session.successUrl
-    res.writeHead(302, { Location: redirectUrl })
-    res.end()
+    const messageType = fail ? 'bizup-pay:failure' : 'bizup-pay:success'
+    res.writeHead(200, { 'Content-Type': 'text/html' })
+    res.end(`<!DOCTYPE html><html><body>
+      <script>
+        try {
+          window.parent.postMessage({ type: '${messageType}', message: '${fail ? 'Payment failed' : 'Payment successful'}' }, '*');
+        } catch(e) {}
+        setTimeout(function() {
+          try { window.top.location.href = '${redirectUrl}'; } catch(e) {
+            window.location.href = '${redirectUrl}';
+          }
+        }, 500);
+      </script>
+      <p>Processing payment...</p>
+    </body></html>`)
   }
 
   private json(res: ServerResponse, status: number, data: unknown): void {

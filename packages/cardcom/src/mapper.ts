@@ -67,8 +67,18 @@ export function toCardcomLowProfileRequest(
     request.MaxPayments = params.installments.fixed
   }
 
+  if (params.customer) {
+    request.AdvancedDefinition = {
+      ...request.AdvancedDefinition,
+      CardOwnerNameValue: params.customer.name,
+      CardOwnerEmailValue: params.customer.email,
+      CardOwnerPhoneValue: params.customer.phone,
+    }
+  }
+
   if (params.recurring) {
     request.AdvancedDefinition = {
+      ...request.AdvancedDefinition,
       IsAutoRecurringPayment: true,
       IsCreateToken: true,
     }

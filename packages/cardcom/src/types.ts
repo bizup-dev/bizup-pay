@@ -27,6 +27,12 @@ export interface CardcomLowProfileCreateRequest {
     FirstPayment?: number
     ConstPayment?: number
     NumberOfPayments?: number
+    CardOwnerNameValue?: string
+    CardOwnerEmailValue?: string
+    CardOwnerPhoneValue?: string
+    IsHideCardOwnerName?: boolean
+    IsHideCardOwnerPhone?: boolean
+    IsHideCardOwnerEmail?: boolean
   }
   Document?: {
     Name: string
