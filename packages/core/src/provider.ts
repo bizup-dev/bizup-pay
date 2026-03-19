@@ -27,6 +27,13 @@ export interface CreateSessionParams {
     fixed?: number
   }
   language?: 'he' | 'en'
+  recurring?: {
+    interval: 'monthly' | 'weekly' | 'yearly'
+    totalPayments?: number
+    amount?: number
+    firstAmount?: number
+    startDate?: string
+  }
 }
 
 export interface RefundParams {

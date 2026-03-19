@@ -47,7 +47,7 @@ export function toCardcomLowProfileRequest(
     SuccessRedirectUrl: params.successUrl,
     FailedRedirectUrl: params.failureUrl ?? params.successUrl,
     WebHookUrl: params.webhookUrl,
-    Operation: 'ChargeOnly',
+    Operation: params.recurring ? 'ChargeAndCreateToken' : 'ChargeOnly',
     Language: LANGUAGE_MAP[params.language ?? 'he'] ?? 'he',
     ISOCoinId: CURRENCY_TO_COIN_ID[params.currency ?? 'ILS'] ?? 1,
     ProductName: params.description,
@@ -65,6 +65,22 @@ export function toCardcomLowProfileRequest(
     request.MaxPayments = params.installments.max
   } else if (params.installments?.fixed) {
     request.MaxPayments = params.installments.fixed
+  }
+
+  if (params.recurring) {
+    request.AdvancedDefinition = {
+      IsAutoRecurringPayment: true,
+      IsCreateToken: true,
+    }
+    if (params.recurring.firstAmount !== undefined) {
+      request.AdvancedDefinition.FirstPayment = params.recurring.firstAmount
+    }
+    if (params.recurring.amount !== undefined) {
+      request.AdvancedDefinition.ConstPayment = params.recurring.amount
+    }
+    if (params.recurring.totalPayments !== undefined) {
+      request.AdvancedDefinition.NumberOfPayments = params.recurring.totalPayments
+    }
   }
 
   const products = params.metadata?.['_products']
@@ -102,6 +118,7 @@ export function fromCardcomLowProfileResponse(
     webhookUrl: params.webhookUrl,
     metadata: params.metadata ?? {},
     status: 'pending',
+    operation: params.recurring ? 'charge_and_tokenize' : 'charge',
   }
 }
 
@@ -188,6 +205,7 @@ export function fromCardcomWebhook(
       dealType: payload.Operation,
       lowProfileId: payload.LowProfileId,
       token: payload.TokenInfo?.CardToken,
+      tokenExpiry: undefined,
     },
     raw: payload,
   }

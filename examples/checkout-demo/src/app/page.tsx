@@ -107,10 +107,22 @@ export default function ShopPage() {
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '2rem' }}>
-      <h1 style={{ fontSize: '1.8rem', marginBottom: '0.5rem' }}>BizUp Pay Demo Shop</h1>
-      <p style={{ color: '#666', marginBottom: '2rem' }}>
-        Add items to your cart and checkout with any provider
-      </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <div>
+          <h1 style={{ fontSize: '1.8rem', margin: '0 0 0.25rem' }}>BizUp Pay Demo Shop</h1>
+          <p style={{ color: '#666', margin: 0 }}>Add items to your cart and checkout with any provider</p>
+        </div>
+        <button
+          onClick={() => router.push('/subscribe')}
+          style={{
+            background: '#0070f3', color: '#fff', border: 'none', borderRadius: 6,
+            padding: '0.6rem 1.2rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          Subscription Plans &rarr;
+        </button>
+      </div>
 
       {/* Products Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>

@@ -10,9 +10,10 @@ const providerConfigs = {
     ...(process.env.MORNING_BASE_URL ? { baseUrl: process.env.MORNING_BASE_URL } : {}),
   },
   cardcom: {
-    terminalNumber: Number(process.env.CARDCOM_TERMINAL_NUMBER),
-    apiName: process.env.CARDCOM_API_NAME!,
-    apiPassword: process.env.CARDCOM_API_PASSWORD!,
+    terminalNumber: Number(process.env.CARDCOM_TERMINAL_NUMBER || 1000),
+    apiName: process.env.CARDCOM_API_NAME || 'mock-api',
+    apiPassword: process.env.CARDCOM_API_PASSWORD || 'mock-pass',
+    ...(process.env.CARDCOM_BASE_URL ? { baseUrl: process.env.CARDCOM_BASE_URL } : {}),
   },
 } as const
 
@@ -33,6 +34,8 @@ export async function POST(request: NextRequest) {
     const config = providerConfigs[providerName as keyof typeof providerConfigs]
     const provider = createProvider(providerName, config)
 
+    const { recurring } = body as { recurring?: { interval: string; totalPayments?: number; amount?: number } }
+
     const session = await provider.createSession({
       amount,
       currency: 'ILS',
@@ -46,6 +49,14 @@ export async function POST(request: NextRequest) {
         email: 'demo@bizup.dev',
       },
       language: 'he',
+      ...(recurring ? {
+        recurring: {
+          interval: recurring.interval as 'monthly' | 'weekly' | 'yearly',
+          totalPayments: recurring.totalPayments,
+          amount: recurring.amount,
+          firstAmount: amount,
+        },
+      } : {}),
       metadata: {
         _products: JSON.stringify(
           (items as Array<{ name: string; price: number; quantity: number }>).map(item => ({

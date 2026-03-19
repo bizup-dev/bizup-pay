@@ -21,6 +21,13 @@ export interface CardcomLowProfileCreateRequest {
   CancelRedirectUrl?: string
   ProductName?: string
   MaxPayments?: number
+  AdvancedDefinition?: {
+    IsAutoRecurringPayment?: boolean
+    IsCreateToken?: boolean
+    FirstPayment?: number
+    ConstPayment?: number
+    NumberOfPayments?: number
+  }
   Document?: {
     Name: string
     Email?: string

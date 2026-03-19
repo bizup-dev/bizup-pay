@@ -4,6 +4,7 @@ export type {
   CardBrand,
   TransactionStatus,
   SessionStatus,
+  SessionOperation,
   RefundStatus,
   WebhookEventType,
   BizupCustomer,

@@ -25,6 +25,8 @@ export type TransactionStatus =
 
 export type SessionStatus = 'pending' | 'completed' | 'failed' | 'cancelled'
 
+export type SessionOperation = 'charge' | 'charge_and_tokenize' | 'tokenize_only'
+
 export type RefundStatus = 'pending' | 'completed' | 'failed'
 
 export type WebhookEventType =
@@ -58,7 +60,11 @@ export interface BizupPaymentSession {
   webhookUrl: string
   metadata: Record<string, string>
   status: SessionStatus
+  operation?: SessionOperation
   expiresAt?: Date
+  token?: string
+  tokenExpiry?: string
+  recurringId?: string
 }
 
 export interface BizupTransaction {
