@@ -23,6 +23,148 @@ const session = await provider.createSession({
 // session.pageUrl → redirect or iframe this
 ```
 
+## Add to Your Website
+
+### 1. Install
+
+```bash
+# Core + your provider (pick one or more)
+npm install @bizup-pay/core @bizup-pay/cardcom
+
+# Client SDK for iframe/modal (optional — not needed for redirect-only)
+npm install @bizup-pay/client
+```
+
+### 2. Server: Create a Checkout Endpoint
+
+```typescript
+// pages/api/checkout.ts (Next.js) or routes/checkout.ts (Express)
+import { createProvider } from '@bizup-pay/core'
+import '@bizup-pay/cardcom' // registers the provider
+
+const provider = createProvider('cardcom', {
+  terminalNumber: Number(process.env.CARDCOM_TERMINAL),
+  apiName: process.env.CARDCOM_API_NAME!,
+  apiPassword: process.env.CARDCOM_API_PASSWORD!,
+})
+
+export async function POST(req: Request) {
+  const { amount, description, customerName, customerEmail } = await req.json()
+
+  const session = await provider.createSession({
+    amount,
+    currency: 'ILS',
+    description,
+    customer: { name: customerName, email: customerEmail },
+    successUrl: 'https://yoursite.co.il/thank-you',
+    failureUrl: 'https://yoursite.co.il/checkout?error=true',
+    webhookUrl: 'https://yoursite.co.il/api/webhook',
+  })
+
+  return Response.json({ pageUrl: session.pageUrl, sessionId: session.id })
+}
+```
+
+### 3. Server: Handle Webhooks
+
+```typescript
+// pages/api/webhook.ts
+import { createProvider } from '@bizup-pay/core'
+import '@bizup-pay/cardcom'
+
+const provider = createProvider('cardcom', { /* same config */ })
+
+export async function POST(req: Request) {
+  const event = await provider.parseWebhook(await req.json())
+
+  if (event.type === 'payment.completed') {
+    const tx = event.transaction
+    // tx.amount, tx.status, tx.cardLastFour, tx.documentUrl
+    await markOrderPaid(tx.providerTransactionId, tx.amount)
+  }
+
+  return Response.json({ received: true })
+}
+```
+
+### 4. Client: Redirect, Iframe, or Modal
+
+**Option A: Redirect (simplest)**
+```html
+<button onclick="checkout()">Pay Now</button>
+<script>
+async function checkout() {
+  const res = await fetch('/api/checkout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount: 100, description: 'Order #1' }),
+  })
+  const { pageUrl } = await res.json()
+  window.location.href = pageUrl  // redirect to payment page
+}
+</script>
+```
+
+**Option B: Iframe (embedded)**
+```html
+<div id="payment-container"></div>
+<script type="module">
+import { BizupPay } from '@bizup-pay/client'
+
+const res = await fetch('/api/checkout', { method: 'POST', /* ... */ })
+const session = await res.json()
+
+const bizupPay = new BizupPay()
+bizupPay.mount(session, document.getElementById('payment-container'), {
+  width: '100%',
+  height: '600px',
+  onSuccess: () => window.location.href = '/thank-you',
+  onFailure: (e) => alert('Payment failed: ' + e.message),
+})
+</script>
+```
+
+**Option C: Modal (popup overlay)**
+```typescript
+import { BizupPay } from '@bizup-pay/client'
+
+const bizupPay = new BizupPay()
+bizupPay.openModal(session, {
+  onSuccess: () => window.location.href = '/thank-you',
+  onFailure: (e) => alert(e.message),
+  onCancel: () => console.log('cancelled'),
+})
+```
+
+### 5. Fetch Transaction Details (Optional)
+
+```typescript
+// After payment, fetch invoice URL and full details
+const tx = await provider.getTransaction(transactionId)
+
+console.log(tx.documentUrl)   // Invoice/receipt PDF link
+console.log(tx.amount)        // 100
+console.log(tx.cardBrand)     // 'visa'
+console.log(tx.cardLastFour)  // '1234'
+```
+
+### Switching Providers
+
+Change one line — the rest of your code stays identical:
+
+```typescript
+// Before: Cardcom
+import '@bizup-pay/cardcom'
+const provider = createProvider('cardcom', { terminalNumber: 1000, apiName: '...', apiPassword: '...' })
+
+// After: Morning
+import '@bizup-pay/morning'
+const provider = createProvider('morning', { apiKey: '...', apiSecret: '...' })
+
+// Same API works for both:
+const session = await provider.createSession({ amount: 100, /* ... */ })
+```
+
 ## Supported Providers
 
 | Provider | Package | Auth | Modes | Documents |
@@ -30,6 +172,7 @@ const session = await provider.createSession({
 | [Morning](https://www.greeninvoice.co.il/) (Green Invoice) | `@bizup-pay/morning` | API key + secret | Iframe, Modal, Redirect | Invoice/Receipt PDF |
 | [Cardcom](https://www.cardcom.solutions/) | `@bizup-pay/cardcom` | Terminal + API name/password | Iframe, Modal, Redirect | Tax Invoice & Receipt |
 | [iCount](https://www.icount.co.il/) | `@bizup-pay/icount` | Bearer token or user/pass | Redirect, Direct API | Invoice-Receipt PDF |
+| [Grow.il](https://www.grow.link/) (Meshulam) | `@bizup-pay/grow` | pageCode + userId | Redirect | Via invoice webhook |
 
 ## Packages
 
