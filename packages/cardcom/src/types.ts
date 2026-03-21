@@ -82,6 +82,9 @@ export interface CardcomTransactionInfo {
   CardOwnerPhone?: string
   CardOwnerEmail?: string
   Uid?: string
+  DocumentNumber?: number
+  DocumentType?: string
+  DocumentUrl?: string
 }
 
 export interface CardcomRefundRequest {

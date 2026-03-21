@@ -18,6 +18,9 @@
     "CouponNumber": "1234",
     "CardOwnerPhone": "+972-54-1234567",
     "CardOwnerEmail": "john@example.com",
-    "Uid": "ABC123"
+    "Uid": "ABC123",
+    "DocumentNumber": 50004,
+    "DocumentType": "TaxInvoiceAndReceipt",
+    "DocumentUrl": "https://secure.cardcom.solutions/docs/50004.pdf"
   }
 ]

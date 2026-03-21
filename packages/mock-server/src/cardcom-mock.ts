@@ -36,6 +36,7 @@ interface StoredTransaction {
   token?: string
   tokenExpiry?: string
   recurringId?: number
+  docNumber: number
   createdAt: Date
 }
 
@@ -113,6 +114,8 @@ export class CardcomMockServer implements MockProviderServer {
     const token = isTokenize ? randomUUID() : undefined
     const recurringId = isRecurring ? ++this.recurringCounter : undefined
 
+    const docNumber = fail ? 0 : txId + 50000
+
     const stored: StoredTransaction = {
       id: txId,
       session,
@@ -123,6 +126,7 @@ export class CardcomMockServer implements MockProviderServer {
       token,
       tokenExpiry: token ? '20301201' : undefined,
       recurringId,
+      docNumber,
       createdAt: now,
     }
     this.storedTransactions.set(txId, stored)
@@ -262,6 +266,9 @@ export class CardcomMockServer implements MockProviderServer {
         InternalDealNumber: stored.id,
         CardOwnerPhone: stored.session.customer?.phone ?? '',
         CardOwnerEmail: stored.session.customer?.email ?? '',
+        DocumentNumber: stored.docNumber || undefined,
+        DocumentType: stored.docNumber ? 'TaxInvoiceAndReceipt' : undefined,
+        DocumentUrl: stored.docNumber ? `http://localhost:${this.port}/mock-doc/${stored.docNumber}.pdf` : undefined,
       },
     ])
   }

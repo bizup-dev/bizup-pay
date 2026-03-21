@@ -161,6 +161,7 @@ export function fromCardcomTransactionInfo(
     cardBrand,
     cardLastFour,
     installments,
+    documentUrl: info.DocumentUrl ?? undefined,
     customer,
     createdAt: info.DealDate ? new Date(info.DealDate) : new Date(),
     cardcom: {

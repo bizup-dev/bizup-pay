@@ -75,6 +75,15 @@ describe('CardcomProvider.getTransaction', () => {
     expect(tx.cardcom?.token).toBe('tok-550e8400-e29b-41d4')
   })
 
+  it('should map document URL from transaction info', async () => {
+    const httpClient = createMockHttpClient(transactionInfoResponse)
+    const provider = new CardcomProvider(defaultConfig, httpClient)
+
+    const tx = await provider.getTransaction('219282004')
+
+    expect(tx.documentUrl).toBe('https://secure.cardcom.solutions/docs/50004.pdf')
+  })
+
   it('should preserve raw response', async () => {
     const httpClient = createMockHttpClient(transactionInfoResponse)
     const provider = new CardcomProvider(defaultConfig, httpClient)
