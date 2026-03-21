@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { PROVIDERS, type ProviderKey } from '../lib/constants'
 
 interface Product {
   id: string
@@ -59,7 +60,7 @@ export default function ShopPage() {
 
   const total = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
 
-  function goToCheckout(provider: 'morning' | 'cardcom' | 'icount') {
+  function goToCheckout(provider: ProviderKey) {
     if (cart.length === 0) return
     const params = new URLSearchParams({
       provider,
@@ -168,24 +169,12 @@ export default function ShopPage() {
 
             {/* Checkout Buttons */}
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-              <button
-                onClick={() => goToCheckout('morning')}
-                style={{ ...checkoutBtnStyle, background: '#16a34a' }}
-              >
-                Checkout with Morning
-              </button>
-              <button
-                onClick={() => goToCheckout('cardcom')}
-                style={{ ...checkoutBtnStyle, background: '#dc2626' }}
-              >
-                Checkout with Cardcom
-              </button>
-              <button
-                onClick={() => goToCheckout('icount')}
-                style={{ ...checkoutBtnStyle, background: '#2563eb' }}
-              >
-                Checkout with iCount
-              </button>
+              {(Object.keys(PROVIDERS) as ProviderKey[]).map(key => (
+                <button key={key} onClick={() => goToCheckout(key)}
+                  style={{ ...checkoutBtnStyle, background: PROVIDERS[key].color }}>
+                  Checkout with {key === 'morning' ? 'Morning' : key === 'cardcom' ? 'Cardcom' : 'iCount'}
+                </button>
+              ))}
             </div>
           </>
         )}

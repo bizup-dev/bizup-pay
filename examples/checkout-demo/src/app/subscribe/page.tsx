@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { PROVIDERS, type ProviderKey } from '../../lib/constants'
+import { ToggleGroup } from '../../components'
 
 interface Plan {
   id: string
@@ -53,7 +55,7 @@ export default function SubscribePage() {
     return billingCycle === 'yearly' ? 'yearly' : plan.interval
   }
 
-  function subscribe(plan: Plan, provider: 'morning' | 'cardcom' | 'icount') {
+  function subscribe(plan: Plan, provider: ProviderKey) {
     const price = getPrice(plan)
     const interval = getInterval(plan)
     const totalPayments = billingCycle === 'yearly' ? 1 : 12
@@ -77,34 +79,14 @@ export default function SubscribePage() {
         </p>
 
         {/* Billing toggle */}
-        <div style={{
-          display: 'inline-flex', background: '#e5e7eb', borderRadius: 8, padding: 3,
-        }}>
-          <button
-            onClick={() => setBillingCycle('monthly')}
-            style={{
-              padding: '0.5rem 1.25rem', borderRadius: 6, border: 'none', cursor: 'pointer',
-              fontWeight: 600, fontSize: '0.9rem',
-              background: billingCycle === 'monthly' ? '#fff' : 'transparent',
-              color: billingCycle === 'monthly' ? '#111' : '#666',
-              boxShadow: billingCycle === 'monthly' ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
-            }}
-          >
-            Monthly
-          </button>
-          <button
-            onClick={() => setBillingCycle('yearly')}
-            style={{
-              padding: '0.5rem 1.25rem', borderRadius: 6, border: 'none', cursor: 'pointer',
-              fontWeight: 600, fontSize: '0.9rem',
-              background: billingCycle === 'yearly' ? '#fff' : 'transparent',
-              color: billingCycle === 'yearly' ? '#111' : '#666',
-              boxShadow: billingCycle === 'yearly' ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
-            }}
-          >
-            Yearly (save 17%)
-          </button>
-        </div>
+        <ToggleGroup
+          options={[
+            { value: 'monthly' as const, label: 'Monthly' },
+            { value: 'yearly' as const, label: 'Yearly (save 17%)' },
+          ]}
+          value={billingCycle}
+          onChange={setBillingCycle}
+        />
       </div>
 
       {/* Plans grid */}
@@ -155,24 +137,12 @@ export default function SubscribePage() {
               </ul>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <button
-                  onClick={() => subscribe(plan, 'cardcom')}
-                  style={{ ...btnStyle, background: '#dc2626' }}
-                >
-                  Subscribe via Cardcom
-                </button>
-                <button
-                  onClick={() => subscribe(plan, 'morning')}
-                  style={{ ...btnStyle, background: '#16a34a' }}
-                >
-                  Subscribe via Morning
-                </button>
-                <button
-                  onClick={() => subscribe(plan, 'icount')}
-                  style={{ ...btnStyle, background: '#2563eb' }}
-                >
-                  Subscribe via iCount
-                </button>
+                {(Object.keys(PROVIDERS) as ProviderKey[]).map(key => (
+                  <button key={key} onClick={() => subscribe(plan, key)}
+                    style={{ ...btnStyle, background: PROVIDERS[key].color }}>
+                    Subscribe via {key === 'morning' ? 'Morning' : key === 'cardcom' ? 'Cardcom' : 'iCount'}
+                  </button>
+                ))}
               </div>
             </div>
           )
