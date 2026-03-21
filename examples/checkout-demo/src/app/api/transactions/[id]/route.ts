@@ -3,6 +3,7 @@ import { createProvider } from '@bizup-pay/core'
 import '@bizup-pay/morning'
 import '@bizup-pay/cardcom'
 import '@bizup-pay/icount'
+import '@bizup-pay/grow'
 import { getPurchase, updatePurchase } from '../../../../lib/store'
 
 const mockConfigs: Record<string, Record<string, unknown>> = {
@@ -23,12 +24,18 @@ const mockConfigs: Record<string, Record<string, unknown>> = {
     paypageId: 1,
     baseUrl: process.env.ICOUNT_MOCK_URL || 'http://localhost:4300/api/v3.php',
   },
+  grow: {
+    pageCode: 'mock-page',
+    userId: 'mock-user',
+    baseUrl: process.env.GROW_MOCK_URL || 'http://localhost:4400/api/light/server/1.0',
+  },
 }
 
 const API_ENDPOINTS: Record<string, string> = {
   morning: 'GET /documents/{id} + GET /documents/{id}/download/links',
   cardcom: 'POST /Transactions/GetTransactionInfoById',
   icount: 'POST /doc/info { doctype, docnum, get_pdf_url: true }',
+  grow: 'POST /getTransactionInfo { pageCode, transactionId, transactionToken }',
 }
 
 export async function GET(

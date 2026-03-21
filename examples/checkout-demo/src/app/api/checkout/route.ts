@@ -3,6 +3,7 @@ import { createProvider } from '@bizup-pay/core'
 import '@bizup-pay/morning'
 import '@bizup-pay/cardcom'
 import '@bizup-pay/icount'
+import '@bizup-pay/grow'
 
 // --- Debug logging infrastructure ---
 
@@ -88,6 +89,11 @@ const mockConfigs = {
     paypageId: 1,
     baseUrl: process.env.ICOUNT_MOCK_URL || 'http://localhost:4300/api/v3.php',
   },
+  grow: {
+    pageCode: 'mock-page',
+    userId: 'mock-user',
+    baseUrl: process.env.GROW_MOCK_URL || 'http://localhost:4400/api/light/server/1.0',
+  },
 }
 
 const sandboxConfigs = {
@@ -107,6 +113,11 @@ const sandboxConfigs = {
     accessToken: process.env.ICOUNT_SANDBOX_TOKEN || '',
     paypageId: 2,
   },
+  grow: {
+    pageCode: process.env.GROW_SANDBOX_PAGE_CODE || '',
+    userId: process.env.GROW_SANDBOX_USER_ID || '',
+    baseUrl: 'https://sandbox.meshulam.co.il/api/light/server/1.0',
+  },
 }
 
 const DEBUG_PANEL_ENABLED = process.env.DEBUG_PANEL_ENABLED === 'true'
@@ -116,7 +127,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { provider: providerName, amount, description, items, mock } = body
 
-    if (!providerName || !['morning', 'cardcom', 'icount'].includes(providerName)) {
+    if (!providerName || !['morning', 'cardcom', 'icount', 'grow'].includes(providerName)) {
       return NextResponse.json({ error: 'Invalid provider' }, { status: 400 })
     }
 

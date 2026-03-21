@@ -38,13 +38,15 @@ function CheckoutContent() {
   const providerColor = provider ? PROVIDERS[provider].color : '#0070f3'
   const isRecurring = !!recurringJson
   const isIcount = provider === 'icount'
+  const isGrow = provider === 'grow'
+  const isRedirectOnly = isIcount || isGrow
 
-  // iCount only supports redirect and direct modes
+  // iCount and Grow only support redirect (and iCount also supports direct)
   useEffect(() => {
-    if (isIcount && (mode === 'iframe' || mode === 'modal')) {
+    if (isRedirectOnly && (mode === 'iframe' || mode === 'modal')) {
       setMode('redirect')
     }
-  }, [isIcount, mode])
+  }, [isRedirectOnly, mode])
 
   // Handle redirect-based status (from redirect mode or fallback)
   useEffect(() => {
@@ -216,8 +218,8 @@ function CheckoutContent() {
             options={(['iframe', 'modal', 'redirect', 'direct'] as IntegrationMode[]).map(m => ({
               value: m,
               label: MODE_INFO[m].label,
-              disabled: step === 'payment' || (isIcount && (m === 'iframe' || m === 'modal')) || (!isIcount && m === 'direct'),
-              title: isIcount && (m === 'iframe' || m === 'modal') ? 'iCount only supports redirect and direct modes' : !isIcount && m === 'direct' ? 'Direct API mode is only available for iCount' : undefined,
+              disabled: step === 'payment' || (isRedirectOnly && (m === 'iframe' || m === 'modal')) || (!isIcount && m === 'direct'),
+              title: isRedirectOnly && (m === 'iframe' || m === 'modal') ? `${providerLabel} only supports redirect mode` : !isIcount && m === 'direct' ? 'Direct API mode is only available for iCount' : undefined,
             }))}
             value={mode}
             onChange={setMode}

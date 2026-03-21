@@ -1,0 +1,8 @@
+{
+  "status": 1,
+  "data": {
+    "processId": 88501,
+    "processToken": "proc-tok-abc123",
+    "url": "https://secure.meshulam.co.il/pay/88501/proc-tok-abc123"
+  }
+}

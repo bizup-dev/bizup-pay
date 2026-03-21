@@ -1,0 +1,16 @@
+{
+  "name": "@bizup-pay/grow",
+  "version": "0.0.1",
+  "description": "Grow.il (Meshulam) adapter for BizUp Pay",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@bizup-pay/core": "0.0.1"
+  },
+  "license": "MIT"
+}

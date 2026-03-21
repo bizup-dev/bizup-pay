@@ -3,6 +3,7 @@ import { createProvider } from '@bizup-pay/core'
 import '@bizup-pay/morning'
 import '@bizup-pay/cardcom'
 import '@bizup-pay/icount'
+import '@bizup-pay/grow'
 import { addPurchase } from '../../../lib/store'
 import type { ProviderKey } from '../../../lib/constants'
 
@@ -24,11 +25,17 @@ const mockConfigs: Record<string, Record<string, unknown>> = {
     paypageId: 1,
     baseUrl: process.env.ICOUNT_MOCK_URL || 'http://localhost:4300/api/v3.php',
   },
+  grow: {
+    pageCode: 'mock-page',
+    userId: 'mock-user',
+    baseUrl: process.env.GROW_MOCK_URL || 'http://localhost:4400/api/light/server/1.0',
+  },
 }
 
 function detectProvider(body: Record<string, unknown>): ProviderKey | null {
   if (body.LowProfileId || body.TranzactionId !== undefined) return 'cardcom'
   if (body.sale_sid || body.sale_uniqid) return 'icount'
+  if (body.transactionId && body.transactionToken && body.asmachta !== undefined) return 'grow'
   if (body.id && body.type !== undefined) return 'morning'
   return null
 }

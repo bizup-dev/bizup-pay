@@ -1,0 +1,22 @@
+{
+  "status": 1,
+  "data": {
+    "transactionId": 77201,
+    "transactionToken": "txn-tok-xyz789",
+    "sum": 149.90,
+    "fullName": "Avi Cohen",
+    "payerEmail": "avi@example.com",
+    "payerPhone": "052-9876543",
+    "cardSuffix": "4580",
+    "cardBrand": "Visa",
+    "cardBrandCode": 3,
+    "asmachta": "0098765",
+    "processId": 88501,
+    "processToken": "proc-tok-abc123",
+    "description": "Premium Plan",
+    "statusCode": 1,
+    "customFields": {
+      "cField1": "order-42"
+    }
+  }
+}

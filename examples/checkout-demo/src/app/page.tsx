@@ -184,7 +184,7 @@ export default function ShopPage() {
               {(Object.keys(PROVIDERS) as ProviderKey[]).map(key => (
                 <button key={key} onClick={() => goToCheckout(key)}
                   style={{ ...checkoutBtnStyle, background: PROVIDERS[key].color }}>
-                  Checkout with {key === 'morning' ? 'Morning' : key === 'cardcom' ? 'Cardcom' : 'iCount'}
+                  Checkout with {PROVIDERS[key].label.split(' (')[0]}
                 </button>
               ))}
             </div>

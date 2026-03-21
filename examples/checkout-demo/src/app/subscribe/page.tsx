@@ -140,7 +140,7 @@ export default function SubscribePage() {
                 {(Object.keys(PROVIDERS) as ProviderKey[]).map(key => (
                   <button key={key} onClick={() => subscribe(plan, key)}
                     style={{ ...btnStyle, background: PROVIDERS[key].color }}>
-                    Subscribe via {key === 'morning' ? 'Morning' : key === 'cardcom' ? 'Cardcom' : 'iCount'}
+                    Subscribe via {PROVIDERS[key].label.split(' (')[0]}
                   </button>
                 ))}
               </div>

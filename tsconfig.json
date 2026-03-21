@@ -21,6 +21,7 @@
     { "path": "packages/cardcom" },
     { "path": "packages/client" },
     { "path": "packages/icount" },
+    { "path": "packages/grow" },
     { "path": "packages/mock-server" }
   ]
 }

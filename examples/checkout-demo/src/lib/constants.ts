@@ -1,9 +1,10 @@
-export type ProviderKey = 'morning' | 'cardcom' | 'icount'
+export type ProviderKey = 'morning' | 'cardcom' | 'icount' | 'grow'
 
 export const PROVIDERS: Record<ProviderKey, { label: string; color: string }> = {
   morning: { label: 'Morning (Green Invoice)', color: '#16a34a' },
   cardcom: { label: 'Cardcom', color: '#dc2626' },
   icount: { label: 'iCount', color: '#2563eb' },
+  grow: { label: 'Grow.il (Meshulam)', color: '#f59e0b' },
 }
 
 export type IntegrationMode = 'iframe' | 'modal' | 'redirect' | 'direct'

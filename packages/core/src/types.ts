@@ -128,5 +128,11 @@ export interface IcountExtras {
 }
 
 export interface GrowExtras {
+  processId?: number
+  processToken?: string
+  transactionToken?: string
+  asmachta?: string
+  cardTypeCode?: number
+  customFields?: Record<string, string>
   [key: string]: unknown
 }
