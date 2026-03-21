@@ -4,6 +4,72 @@ import '@bizup-pay/morning'
 import '@bizup-pay/cardcom'
 import '@bizup-pay/icount'
 
+// --- Debug logging infrastructure ---
+
+interface DebugLogEntry {
+  timestamp: string
+  method: string
+  url: string
+  requestBody?: unknown
+  responseStatus?: number
+  responseBody?: unknown
+  durationMs: number
+}
+
+const REDACT_KEYS = new Set([
+  'apipassword', 'apisecret', 'apikey', 'password', 'pass',
+  'accesstoken', 'authorization', 'sid', 'token', 'secret',
+])
+
+function redactSensitive(obj: unknown): unknown {
+  if (obj === null || obj === undefined) return obj
+  if (typeof obj === 'string') return obj
+  if (Array.isArray(obj)) return obj.map(redactSensitive)
+  if (typeof obj === 'object') {
+    const result: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
+      if (REDACT_KEYS.has(key.toLowerCase())) {
+        result[key] = '[REDACTED]'
+      } else {
+        result[key] = redactSensitive(value)
+      }
+    }
+    return result
+  }
+  return obj
+}
+
+function createLoggingFetch(logs: DebugLogEntry[]): typeof globalThis.fetch {
+  const originalFetch = globalThis.fetch
+  return async function loggingFetch(input: RequestInfo | URL, init?: RequestInit) {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
+    const method = init?.method ?? 'GET'
+    const start = Date.now()
+
+    let requestBody: unknown
+    if (init?.body && typeof init.body === 'string') {
+      try { requestBody = JSON.parse(init.body) } catch { requestBody = init.body }
+    }
+
+    const response = await originalFetch(input, init)
+    const cloned = response.clone()
+    let responseBody: unknown
+    try { responseBody = await cloned.json() } catch { responseBody = null }
+
+    logs.push({
+      timestamp: new Date().toISOString(),
+      method,
+      url,
+      requestBody: redactSensitive(requestBody),
+      responseStatus: response.status,
+      responseBody: redactSensitive(responseBody),
+      durationMs: Date.now() - start,
+    })
+
+    return response
+  } as typeof globalThis.fetch
+}
+
 const mockConfigs = {
   morning: {
     apiKey: 'mock-key',
@@ -43,6 +109,8 @@ const sandboxConfigs = {
   },
 }
 
+const DEBUG_PANEL_ENABLED = process.env.DEBUG_PANEL_ENABLED === 'true'
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -73,44 +141,65 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3099'
-    const provider = createProvider(providerName, config)
-
-    const { recurring, customer } = body as {
-      recurring?: { interval: string; totalPayments?: number; amount?: number }
-      customer?: { name: string; email?: string; phone?: string; taxId?: string }
+    // Debug: install logging fetch if both server env and client flag are set
+    const debugRequested = body.debug === true && DEBUG_PANEL_ENABLED
+    const debugLogs: DebugLogEntry[] = []
+    const savedFetch = globalThis.fetch
+    if (debugRequested) {
+      globalThis.fetch = createLoggingFetch(debugLogs)
     }
 
-    const session = await provider.createSession({
-      amount,
-      currency: 'ILS',
-      description,
-      successUrl: `${appUrl}/checkout?status=success`,
-      failureUrl: `${appUrl}/checkout?status=failure`,
-      cancelUrl: `${appUrl}/checkout?status=cancelled`,
-      webhookUrl: `${appUrl}/api/webhook`,
-      customer: customer ?? { name: 'Guest' },
-      language: 'he',
-      ...(recurring ? {
-        recurring: {
-          interval: recurring.interval as 'monthly' | 'weekly' | 'yearly',
-          totalPayments: recurring.totalPayments,
-          amount: recurring.amount,
-          firstAmount: amount,
-        },
-      } : {}),
-      metadata: {
-        _products: JSON.stringify(
-          (items as Array<{ name: string; price: number; quantity: number }>).map(item => ({
-            description: item.name,
-            unitCost: item.price,
-            quantity: item.quantity,
-          }))
-        ),
-      },
-    })
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3099'
 
-    return NextResponse.json({ session, mock: useMock })
+    let session
+    try {
+      const provider = createProvider(providerName, config)
+
+      const { recurring, customer } = body as {
+        recurring?: { interval: string; totalPayments?: number; amount?: number }
+        customer?: { name: string; email?: string; phone?: string; taxId?: string }
+      }
+
+      session = await provider.createSession({
+        amount,
+        currency: 'ILS',
+        description,
+        successUrl: `${appUrl}/checkout?status=success`,
+        failureUrl: `${appUrl}/checkout?status=failure`,
+        cancelUrl: `${appUrl}/checkout?status=cancelled`,
+        webhookUrl: `${appUrl}/api/webhook`,
+        customer: customer ?? { name: 'Guest' },
+        language: 'he',
+        ...(recurring ? {
+          recurring: {
+            interval: recurring.interval as 'monthly' | 'weekly' | 'yearly',
+            totalPayments: recurring.totalPayments,
+            amount: recurring.amount,
+            firstAmount: amount,
+          },
+        } : {}),
+        metadata: {
+          _products: JSON.stringify(
+            (items as Array<{ name: string; price: number; quantity: number }>).map(item => ({
+              description: item.name,
+              unitCost: item.price,
+              quantity: item.quantity,
+            }))
+          ),
+        },
+      })
+    } finally {
+      if (debugRequested) {
+        globalThis.fetch = savedFetch
+      }
+    }
+
+    return NextResponse.json({
+      session,
+      mock: useMock,
+      ...(debugRequested ? { debugLogs } : {}),
+      ...(DEBUG_PANEL_ENABLED ? { debugEnabled: true } : {}),
+    })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Checkout failed'
     console.error('Checkout error:', err)
