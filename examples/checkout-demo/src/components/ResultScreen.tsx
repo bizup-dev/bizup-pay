@@ -23,10 +23,18 @@ export function ResultScreen({ status, message }: { status: 'success' | 'failure
         </div>
         <h1 style={{ color: c.text, marginBottom: '0.5rem' }}>{title}</h1>
         <p style={{ color: '#666', marginBottom: '2rem' }}>{message}</p>
-        <button onClick={() => router.push('/')}
-          style={{ background: '#0070f3', color: '#fff', border: 'none', borderRadius: 6, padding: '0.75rem 2rem', cursor: 'pointer', fontWeight: 600, fontSize: '1rem' }}>
-          Back to Shop
-        </button>
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+          <button onClick={() => router.push('/')}
+            style={{ background: '#0070f3', color: '#fff', border: 'none', borderRadius: 6, padding: '0.75rem 2rem', cursor: 'pointer', fontWeight: 600, fontSize: '1rem' }}>
+            Back to Shop
+          </button>
+          {status === 'success' && (
+            <button onClick={() => router.push('/account')}
+              style={{ background: '#fff', color: '#0070f3', border: '1px solid #0070f3', borderRadius: 6, padding: '0.75rem 2rem', cursor: 'pointer', fontWeight: 600, fontSize: '1rem' }}>
+              View in Account
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )

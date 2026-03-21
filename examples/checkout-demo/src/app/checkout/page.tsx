@@ -48,10 +48,21 @@ function CheckoutContent() {
 
   // Handle redirect-based status (from redirect mode or fallback)
   useEffect(() => {
-    if (redirectStatus === 'success') { setStep('success'); setMessage('Payment completed successfully!') }
+    if (redirectStatus === 'success') {
+      setStep('success')
+      setMessage('Payment completed successfully!')
+      // Save redirect-sourced purchase to store
+      if (provider) {
+        fetch('/api/transactions/redirect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ provider, amount, description }),
+        }).catch(() => {})
+      }
+    }
     else if (redirectStatus === 'failure') { setStep('failure'); setMessage('Payment failed. Please try again.') }
     else if (redirectStatus === 'cancelled') { setStep('cancelled'); setMessage('Payment was cancelled.') }
-  }, [redirectStatus])
+  }, [redirectStatus, provider, amount, description])
 
   // Mount iframe/modal when session is ready
   useEffect(() => {
