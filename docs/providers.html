@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Provider Setup Guides — BizUp Pay</title>
+  <meta name="description" content="Step-by-step setup guides for each Israeli payment provider supported by BizUp Pay.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #0a2540; background: #fff; line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(255,255,255,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid #e6ebf1;
+    }
+    nav .container { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .nav-logo { font-weight: 700; font-size: 1.15rem; display: flex; align-items: center; gap: 8px; }
+    .nav-logo .dot { color: #635bff; }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a { font-size: 0.9rem; font-weight: 500; color: #425466; transition: color 0.15s; }
+    .nav-links a:hover { color: #0a2540; }
+    .nav-links .btn-github {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 6px;
+      background: #0a2540; color: #fff; font-size: 0.85rem; transition: background 0.15s;
+    }
+    .nav-links .btn-github:hover { background: #1a3550; }
+    .nav-links .btn-github svg { width: 18px; height: 18px; }
+
+    /* ── Page Header ── */
+    .page-header {
+      padding: 120px 0 48px;
+      background: linear-gradient(180deg, #f6f9fc 0%, #fff 100%);
+    }
+    .section-label {
+      font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.1em; color: #635bff; margin-bottom: 12px;
+    }
+    .page-title {
+      font-size: 2.4rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 16px;
+    }
+    .page-desc { font-size: 1.05rem; color: #425466; max-width: 600px; }
+
+    /* ── Provider Nav ── */
+    .provider-nav {
+      display: flex; gap: 12px; padding: 24px 0; flex-wrap: wrap;
+      border-bottom: 1px solid #e6ebf1; margin-bottom: 48px;
+    }
+    .provider-nav a {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 20px; border-radius: 8px; font-size: 0.9rem; font-weight: 500;
+      border: 1px solid #e6ebf1; transition: all 0.15s;
+    }
+    .provider-nav a:hover { border-color: #635bff; color: #635bff; }
+    .provider-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── Provider Section ── */
+    .provider-section { padding: 48px 0; border-bottom: 1px solid #e6ebf1; }
+    .provider-section:last-of-type { border-bottom: none; }
+    .provider-header { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; }
+    .provider-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 1.1rem; color: #fff; flex-shrink: 0;
+    }
+    .provider-header h2 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.01em; }
+    .provider-subtitle { font-size: 0.95rem; color: #425466; margin-bottom: 32px; }
+
+    /* ── Mode Badges ── */
+    .modes { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+    .mode-badge {
+      display: inline-block; padding: 4px 12px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em;
+    }
+    .mode-badge.redirect { background: #e8f5e9; color: #2e7d32; }
+    .mode-badge.iframe { background: #e3f2fd; color: #1565c0; }
+    .mode-badge.modal { background: #f3e5f5; color: #7b1fa2; }
+    .mode-badge.simple { background: #fff3e0; color: #e65100; }
+    .mode-badge.api { background: #f0edff; color: #635bff; }
+
+    /* ── Info Cards ── */
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+    .info-card {
+      padding: 20px; border-radius: 10px; border: 1px solid #e6ebf1;
+    }
+    .info-card h4 { font-size: 0.85rem; font-weight: 600; color: #8898aa; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    .info-card p { font-size: 0.9rem; color: #0a2540; }
+    .info-card code { background: #f6f9fc; padding: 2px 6px; border-radius: 4px; font-size: 0.82rem; }
+    .info-card a { color: #635bff; font-weight: 500; }
+    .info-card a:hover { text-decoration: underline; }
+
+    /* ── Steps ── */
+    .setup-steps { margin-bottom: 32px; }
+    .setup-step { display: flex; gap: 16px; margin-bottom: 24px; }
+    .step-num {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      background: #635bff; color: #fff; font-weight: 700; font-size: 0.8rem;
+      display: flex; align-items: center; justify-content: center; margin-top: 2px;
+    }
+    .step-content h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
+    .step-content p { font-size: 0.88rem; color: #425466; }
+
+    /* ── Code Block ── */
+    .code-block {
+      background: #0a2540; border-radius: 10px; overflow: hidden; margin: 16px 0 32px;
+    }
+    .code-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 20px; background: rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .code-dot.red { background: #ff5f57; }
+    .code-dot.yellow { background: #febc2e; }
+    .code-dot.green { background: #28c840; }
+    .code-filename { margin-left: 10px; font-size: 0.75rem; color: rgba(255,255,255,0.5); }
+    .code-block pre {
+      padding: 20px; overflow-x: auto; font-size: 0.82rem; line-height: 1.7; color: #a3acb9;
+    }
+    .code-block .kw { color: #c792ea; }
+    .code-block .fn { color: #82aaff; }
+    .code-block .str { color: #c3e88d; }
+    .code-block .cm { color: #546e7a; }
+    .code-block .num { color: #f78c6c; }
+    .code-block .type { color: #ffcb6b; }
+
+    /* ── Webhook Config ── */
+    .webhook-box {
+      background: #f6f9fc; border-radius: 10px; padding: 24px; margin: 16px 0 32px;
+      border: 1px solid #e6ebf1;
+    }
+    .webhook-box h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 12px; }
+    .webhook-box p { font-size: 0.88rem; color: #425466; margin-bottom: 8px; }
+    .webhook-box code {
+      display: inline-block; background: #0a2540; color: #a3acb9; padding: 4px 10px;
+      border-radius: 6px; font-size: 0.82rem;
+    }
+    .webhook-box .field-list { margin-top: 12px; }
+    .webhook-box .field-list dt {
+      font-weight: 600; font-size: 0.85rem; color: #0a2540; margin-top: 8px;
+    }
+    .webhook-box .field-list dd { font-size: 0.85rem; color: #425466; margin-left: 0; }
+
+    /* ── Callout ── */
+    .callout {
+      display: flex; gap: 12px; padding: 16px 20px; border-radius: 8px;
+      margin: 16px 0 24px; font-size: 0.88rem;
+    }
+    .callout.tip { background: #e8f5e9; border: 1px solid #c8e6c9; }
+    .callout.tip .callout-icon { color: #2e7d32; }
+    .callout.warning { background: #fff3e0; border: 1px solid #ffe0b2; }
+    .callout.warning .callout-icon { color: #e65100; }
+    .callout.info { background: #e3f2fd; border: 1px solid #bbdefb; }
+    .callout.info .callout-icon { color: #1565c0; }
+    .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+    .callout p { color: #425466; }
+
+    /* ── Footer ── */
+    footer { padding: 48px 0; border-top: 1px solid #e6ebf1; }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; }
+    .footer-brand { font-size: 0.85rem; color: #8898aa; }
+    .footer-brand a { color: #635bff; font-weight: 600; }
+    .footer-brand a:hover { text-decoration: underline; }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { font-size: 0.85rem; color: #8898aa; transition: color 0.15s; }
+    .footer-links a:hover { color: #0a2540; }
+    .footer-heart { color: #e25555; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .page-title { font-size: 1.8rem; }
+      .info-grid { grid-template-columns: 1fr; }
+      .nav-links a:not(.btn-github) { display: none; }
+      .footer-inner { flex-direction: column; gap: 16px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav>
+  <div class="container">
+    <a href="/" class="nav-logo">
+      <span class="dot">&#9632;</span> BizUp Pay
+    </a>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/providers.html">Providers</a>
+      <a href="https://github.com/bizup-dev/bizup-pay" class="btn-github" target="_blank">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Page Header ── -->
+<section class="page-header">
+  <div class="container">
+    <div class="section-label">Setup Guides</div>
+    <h1 class="page-title">Provider Setup</h1>
+    <p class="page-desc">Step-by-step instructions for each Israeli payment provider. Choose your provider below to get started.</p>
+  </div>
+</section>
+
+<!-- ── Provider Nav ── -->
+<div class="container">
+  <div class="provider-nav">
+    <a href="#grow-simple"><span class="provider-dot" style="background:#6053dd"></span> Grow.il (Simple)</a>
+    <a href="#grow-api"><span class="provider-dot" style="background:#6053dd"></span> Grow.il (API)</a>
+    <a href="#cardcom"><span class="provider-dot" style="background:#e74c3c"></span> Cardcom</a>
+    <a href="#morning"><span class="provider-dot" style="background:#1abc9c"></span> Morning</a>
+    <a href="#icount"><span class="provider-dot" style="background:#3498db"></span> iCount</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- ── Grow.il (Simple — No API) ── -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="container">
+<section class="provider-section" id="grow-simple">
+  <div class="provider-header">
+    <div class="provider-icon" style="background:#6053dd">G</div>
+    <h2>Grow.il — Simple Redirect</h2>
+  </div>
+  <p class="provider-subtitle">No API credentials needed. Use your existing Grow payment page URL and receive webhooks.</p>
+
+  <div class="modes">
+    <span class="mode-badge simple">No API needed</span>
+    <span class="mode-badge redirect">Redirect</span>
+  </div>
+
+  <div class="callout tip">
+    <span class="callout-icon">&#10003;</span>
+    <p><strong>Best for:</strong> Simple websites that just need to redirect customers to a payment page and get notified when payment completes.</p>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <h4>What you need</h4>
+      <p>Your Grow.il payment page URL from the <a href="https://grow.link" target="_blank">Grow dashboard</a></p>
+    </div>
+    <div class="info-card">
+      <h4>How it works</h4>
+      <p>You redirect customers to your Grow payment page. Grow notifies your server via webhook when payment completes.</p>
+    </div>
+  </div>
+
+  <div class="setup-steps">
+    <div class="setup-step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Get your payment page URL</h4>
+        <p>Log in to your <a href="https://grow.link" style="color:#635bff">Grow.il dashboard</a>. Go to Payment Pages and copy the URL of your payment page (e.g. <code>https://secure.meshulam.co.il/pay/your-page-code</code>).</p>
+      </div>
+    </div>
+    <div class="setup-step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Configure webhook URL in Grow dashboard</h4>
+        <p>In your Grow payment page settings, set the notification URL to your webhook endpoint. We recommend including a secret for security:</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="webhook-box">
+    <h4>Webhook Configuration</h4>
+    <p>Set these URLs in your Grow payment page settings:</p>
+    <dl class="field-list">
+      <dt>Notification URL (webhook)</dt>
+      <dd><code>https://yoursite.co.il/api/webhook?bizup_secret=YOUR_SECRET</code></dd>
+      <dt>Success URL</dt>
+      <dd><code>https://yoursite.co.il/thank-you</code></dd>
+      <dt>Failure URL</dt>
+      <dd><code>https://yoursite.co.il/checkout?error=true</code></dd>
+    </dl>
+  </div>
+
+  <div class="setup-steps">
+    <div class="setup-step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Redirect customers to your payment page</h4>
+        <p>On your checkout page, redirect the customer to your Grow payment page URL.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-dot red"></span><span class="code-dot yellow"></span><span class="code-dot green"></span>
+      <span class="code-filename">checkout.ts</span>
+    </div>
+<pre><span class="cm">// Simple redirect — no SDK needed for this part</span>
+<span class="kw">const</span> GROW_PAGE_URL = <span class="str">'https://secure.meshulam.co.il/pay/your-page-code'</span>
+
+<span class="cm">// On checkout button click:</span>
+window.location.href = GROW_PAGE_URL</pre>
+  </div>
+
+  <div class="setup-steps">
+    <div class="setup-step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Handle the webhook</h4>
+        <p>Install <code>@bizup-pay/core</code> and <code>@bizup-pay/grow</code> to parse Grow's webhook into a clean, typed object.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-dot red"></span><span class="code-dot yellow"></span><span class="code-dot green"></span>
+      <span class="code-filename">webhook.ts</span>
+    </div>
+<pre><span class="kw">import</span> { createProvider, verifyWebhookSecret } <span class="kw">from</span> <span class="str">'@bizup-pay/core'</span>
+<span class="kw">import</span> <span class="str">'@bizup-pay/grow'</span>
+
+<span class="kw">const</span> WEBHOOK_SECRET = process.env.<span class="type">WEBHOOK_SECRET</span><span class="cm">!</span>
+
+<span class="cm">// You still need Grow API credentials to parse webhooks</span>
+<span class="kw">const</span> pay = <span class="fn">createProvider</span>(<span class="str">'grow'</span>, {
+  pageCode: process.env.<span class="type">GROW_PAGE_CODE</span><span class="cm">!</span>,
+  userId: process.env.<span class="type">GROW_USER_ID</span><span class="cm">!</span>,
+})
+
+<span class="kw">export async function</span> <span class="fn">POST</span>(req: Request) {
+  <span class="cm">// Verify the secret in the URL</span>
+  <span class="kw">if</span> (!<span class="fn">verifyWebhookSecret</span>(req.url, WEBHOOK_SECRET)) {
+    <span class="kw">return new</span> Response(<span class="str">'Unauthorized'</span>, { status: <span class="num">401</span> })
+  }
+
+  <span class="kw">const</span> event = <span class="kw">await</span> pay.<span class="fn">parseWebhook</span>(<span class="kw">await</span> req.<span class="fn">json</span>())
+
+  <span class="kw">if</span> (event.type === <span class="str">'payment.completed'</span>) {
+    <span class="kw">const</span> tx = event.transaction
+    <span class="cm">// tx.amount, tx.status, tx.customer</span>
+    <span class="kw">await</span> <span class="fn">fulfillOrder</span>(tx)
+  }
+
+  <span class="kw">return</span> Response.<span class="fn">json</span>({ received: <span class="kw">true</span> })
+}</pre>
+  </div>
+
+  <div class="callout info">
+    <span class="callout-icon">&#8505;</span>
+    <p><strong>Note:</strong> Even in simple mode, you need <code>pageCode</code> and <code>userId</code> from Grow to parse webhooks and query transactions. You can find these in your Grow dashboard under API settings.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- ── Grow.il (Full API) ── -->
+<!-- ══════════════════════════════════════════════ -->
+<section class="provider-section" id="grow-api">
+  <div class="provider-header">
+    <div class="provider-icon" style="background:#6053dd">G</div>
+    <h2>Grow.il — Full API</h2>
+  </div>
+  <p class="provider-subtitle">Dynamic payment sessions with customer pre-fill, custom amounts, and transaction management.</p>
+
+  <div class="modes">
+    <span class="mode-badge api">Full API</span>
+    <span class="mode-badge redirect">Redirect</span>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <h4>What you need</h4>
+      <p><code>pageCode</code> and <code>userId</code> from <a href="https://grow.link" target="_blank">Grow dashboard</a> &rarr; API Settings</p>
+    </div>
+    <div class="info-card">
+      <h4>Auth method</h4>
+      <p>Form-based params sent with each request. No tokens or headers.</p>
+    </div>
+    <div class="info-card">
+      <h4>Sandbox</h4>
+      <p>Base URL: <code>sandbox.meshulam.co.il</code></p>
+    </div>
+    <div class="info-card">
+      <h4>Production</h4>
+      <p>Base URL: <code>secure.meshulam.co.il</code></p>
+    </div>
+  </div>
+
+  <div class="setup-steps">
+    <div class="setup-step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Install packages</h4>
+        <p><code>npm install @bizup-pay/core @bizup-pay/grow</code></p>
+      </div>
+    </div>
+    <div class="setup-step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Get credentials from Grow dashboard</h4>
+        <p>Go to API Settings and copy your <code>pageCode</code> and <code>userId</code>.</p>
+      </div>
+    </div>
+    <div class="setup-step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Create provider and start accepting payments</h4>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-dot red"></span><span class="code-dot yellow"></span><span class="code-dot green"></span>
+      <span class="code-filename">checkout.ts</span>
+    </div>
+<pre><span class="kw">import</span> { createProvider, buildWebhookUrl } <span class="kw">from</span> <span class="str">'@bizup-pay/core'</span>
+<span class="kw">import</span> <span class="str">'@bizup-pay/grow'</span>
+
+<span class="kw">const</span> pay = <span class="fn">createProvider</span>(<span class="str">'grow'</span>, {
+  pageCode: process.env.<span class="type">GROW_PAGE_CODE</span><span class="cm">!</span>,
+  userId: process.env.<span class="type">GROW_USER_ID</span><span class="cm">!</span>,
+})
+
+<span class="kw">const</span> session = <span class="kw">await</span> pay.<span class="fn">createSession</span>({
+  amount: <span class="num">149.90</span>,
+  currency: <span class="str">'ILS'</span>,
+  description: <span class="str">'Premium Plan'</span>,
+  customer: { name: <span class="str">'Israel Israeli'</span>, email: <span class="str">'israel@example.com'</span> },
+  successUrl: <span class="str">'https://yoursite.co.il/thank-you'</span>,
+  webhookUrl: <span class="fn">buildWebhookUrl</span>(<span class="str">'https://yoursite.co.il/api/webhook'</span>, <span class="str">'your-secret'</span>),
+})
+
+<span class="cm">// Redirect customer to payment page</span>
+<span class="cm">// session.pageUrl → https://secure.meshulam.co.il/pay/...</span></pre>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- ── Cardcom ── -->
+<!-- ══════════════════════════════════════════════ -->
+<section class="provider-section" id="cardcom">
+  <div class="provider-header">
+    <div class="provider-icon" style="background:#e74c3c">C</div>
+    <h2>Cardcom</h2>
+  </div>
+  <p class="provider-subtitle">Full-featured credit card processing with Low Profile pages, installments, and document generation.</p>
+
+  <div class="modes">
+    <span class="mode-badge api">Full API</span>
+    <span class="mode-badge redirect">Redirect</span>
+    <span class="mode-badge iframe">Iframe</span>
+    <span class="mode-badge modal">Modal</span>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <h4>What you need</h4>
+      <p><code>terminalNumber</code>, <code>apiName</code>, and <code>apiPassword</code> from <a href="https://www.cardcom.solutions/" target="_blank">Cardcom dashboard</a></p>
+    </div>
+    <div class="info-card">
+      <h4>Auth method</h4>
+      <p>Credentials sent in every request body. No tokens or sessions.</p>
+    </div>
+    <div class="info-card">
+      <h4>Sandbox</h4>
+      <p>Terminal <code>1000</code> is a public sandbox. Get API name/password from Cardcom.</p>
+    </div>
+    <div class="info-card">
+      <h4>Features</h4>
+      <p>Installments, recurring payments, tokenization, tax invoices, receipts</p>
+    </div>
+  </div>
+
+  <div class="setup-steps">
+    <div class="setup-step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Install packages</h4>
+        <p><code>npm install @bizup-pay/core @bizup-pay/cardcom</code></p>
+      </div>
+    </div>
+    <div class="setup-step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Get credentials from Cardcom</h4>
+        <p>Sign up at <a href="https://www.cardcom.solutions/" style="color:#635bff">cardcom.solutions</a> and get your terminal number, API name, and API password.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-dot red"></span><span class="code-dot yellow"></span><span class="code-dot green"></span>
+      <span class="code-filename">checkout.ts</span>
+    </div>
+<pre><span class="kw">import</span> { createProvider, buildWebhookUrl } <span class="kw">from</span> <span class="str">'@bizup-pay/core'</span>
+<span class="kw">import</span> <span class="str">'@bizup-pay/cardcom'</span>
+
+<span class="kw">const</span> pay = <span class="fn">createProvider</span>(<span class="str">'cardcom'</span>, {
+  terminalNumber: <span class="num">1000</span>,  <span class="cm">// sandbox terminal</span>
+  apiName: process.env.<span class="type">CARDCOM_API_NAME</span><span class="cm">!</span>,
+  apiPassword: process.env.<span class="type">CARDCOM_API_PASSWORD</span><span class="cm">!</span>,
+})
+
+<span class="kw">const</span> session = <span class="kw">await</span> pay.<span class="fn">createSession</span>({
+  amount: <span class="num">100</span>,
+  currency: <span class="str">'ILS'</span>,
+  description: <span class="str">'Order #1234'</span>,
+  customer: { name: <span class="str">'Israel Israeli'</span>, email: <span class="str">'israel@example.com'</span> },
+  successUrl: <span class="str">'https://yoursite.co.il/thank-you'</span>,
+  webhookUrl: <span class="fn">buildWebhookUrl</span>(<span class="str">'https://yoursite.co.il/api/webhook'</span>, <span class="str">'your-secret'</span>),
+})
+
+<span class="cm">// session.pageUrl → Cardcom Low Profile payment page</span></pre>
+  </div>
+
+  <div class="webhook-box">
+    <h4>Webhook Setup</h4>
+    <p>Cardcom sends webhooks to the <code>webhookUrl</code> provided in <code>createSession()</code>. No dashboard configuration needed — the URL is set per-transaction.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- ── Morning (Green Invoice) ── -->
+<!-- ══════════════════════════════════════════════ -->
+<section class="provider-section" id="morning">
+  <div class="provider-header">
+    <div class="provider-icon" style="background:#1abc9c">M</div>
+    <h2>Morning (Green Invoice)</h2>
+  </div>
+  <p class="provider-subtitle">Payments with built-in invoice and receipt generation. Popular for businesses that need accounting integration.</p>
+
+  <div class="modes">
+    <span class="mode-badge api">Full API</span>
+    <span class="mode-badge redirect">Redirect</span>
+    <span class="mode-badge iframe">Iframe</span>
+    <span class="mode-badge modal">Modal</span>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <h4>What you need</h4>
+      <p><code>apiKey</code> and <code>apiSecret</code> from <a href="https://www.greeninvoice.co.il/" target="_blank">Green Invoice dashboard</a> &rarr; Settings &rarr; API Keys</p>
+    </div>
+    <div class="info-card">
+      <h4>Auth method</h4>
+      <p>Bearer token: <code>Authorization: Bearer key:secret</code></p>
+    </div>
+    <div class="info-card">
+      <h4>Sandbox</h4>
+      <p>Register at <a href="https://lp.sandbox.d.greeninvoice.co.il/join" style="color:#635bff">sandbox.greeninvoice.co.il</a></p>
+    </div>
+    <div class="info-card">
+      <h4>Features</h4>
+      <p>Automatic invoices/receipts, customer management, document downloads</p>
+    </div>
+  </div>
+
+  <div class="setup-steps">
+    <div class="setup-step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Install packages</h4>
+        <p><code>npm install @bizup-pay/core @bizup-pay/morning</code></p>
+      </div>
+    </div>
+    <div class="setup-step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Get API credentials</h4>
+        <p>In your Green Invoice account, go to Settings &rarr; API Keys and generate a new API key pair.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-dot red"></span><span class="code-dot yellow"></span><span class="code-dot green"></span>
+      <span class="code-filename">checkout.ts</span>
+    </div>
+<pre><span class="kw">import</span> { createProvider, buildWebhookUrl } <span class="kw">from</span> <span class="str">'@bizup-pay/core'</span>
+<span class="kw">import</span> <span class="str">'@bizup-pay/morning'</span>
+
+<span class="kw">const</span> pay = <span class="fn">createProvider</span>(<span class="str">'morning'</span>, {
+  apiKey: process.env.<span class="type">MORNING_API_KEY</span><span class="cm">!</span>,
+  apiSecret: process.env.<span class="type">MORNING_API_SECRET</span><span class="cm">!</span>,
+})
+
+<span class="kw">const</span> session = <span class="kw">await</span> pay.<span class="fn">createSession</span>({
+  amount: <span class="num">79.90</span>,
+  currency: <span class="str">'ILS'</span>,
+  description: <span class="str">'T-Shirt'</span>,
+  customer: { name: <span class="str">'Israel Israeli'</span>, email: <span class="str">'israel@example.com'</span> },
+  successUrl: <span class="str">'https://yoursite.co.il/thank-you'</span>,
+  webhookUrl: <span class="fn">buildWebhookUrl</span>(<span class="str">'https://yoursite.co.il/api/webhook'</span>, <span class="str">'your-secret'</span>),
+  language: <span class="str">'he'</span>,  <span class="cm">// Hebrew payment page</span>
+})
+
+<span class="cm">// session.pageUrl → Morning hosted payment page</span>
+<span class="cm">// After payment: tx.documentUrl → Invoice/receipt PDF</span></pre>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- ── iCount ── -->
+<!-- ══════════════════════════════════════════════ -->
+<section class="provider-section" id="icount">
+  <div class="provider-header">
+    <div class="provider-icon" style="background:#3498db">i</div>
+    <h2>iCount</h2>
+  </div>
+  <p class="provider-subtitle">Accounting platform with integrated payment processing. Session-based authentication with automatic renewal.</p>
+
+  <div class="modes">
+    <span class="mode-badge api">Full API</span>
+    <span class="mode-badge redirect">Redirect</span>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <h4>What you need</h4>
+      <p><code>cid</code> (company ID), <code>paypageId</code>, and either <code>accessToken</code> or <code>user</code>/<code>pass</code> from <a href="https://www.icount.co.il/" target="_blank">iCount</a></p>
+    </div>
+    <div class="info-card">
+      <h4>Auth method</h4>
+      <p>Session ID (SID) — auto-managed, cached for 19 minutes, refreshes automatically</p>
+    </div>
+    <div class="info-card">
+      <h4>Two auth options</h4>
+      <p><strong>Recommended:</strong> <code>accessToken</code> (bearer token)<br><strong>Alternative:</strong> <code>user</code> + <code>pass</code></p>
+    </div>
+    <div class="info-card">
+      <h4>Features</h4>
+      <p>Invoice-receipt generation, PDF download URLs, recurring payments</p>
+    </div>
+  </div>
+
+  <div class="callout warning">
+    <span class="callout-icon">&#9888;</span>
+    <p><strong>Recommended:</strong> Use <code>accessToken</code> auth for production. The <code>user</code>/<code>pass</code> mode sends credentials in the HTTP request body — avoid this if possible.</p>
+  </div>
+
+  <div class="setup-steps">
+    <div class="setup-step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Install packages</h4>
+        <p><code>npm install @bizup-pay/core @bizup-pay/icount</code></p>
+      </div>
+    </div>
+    <div class="setup-step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Get credentials from iCount</h4>
+        <p>Get your company ID, pay page ID, and API token from your iCount account settings.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-dot red"></span><span class="code-dot yellow"></span><span class="code-dot green"></span>
+      <span class="code-filename">checkout.ts</span>
+    </div>
+<pre><span class="kw">import</span> { createProvider, buildWebhookUrl } <span class="kw">from</span> <span class="str">'@bizup-pay/core'</span>
+<span class="kw">import</span> <span class="str">'@bizup-pay/icount'</span>
+
+<span class="cm">// Option A: Access token (recommended)</span>
+<span class="kw">const</span> pay = <span class="fn">createProvider</span>(<span class="str">'icount'</span>, {
+  cid: process.env.<span class="type">ICOUNT_CID</span><span class="cm">!</span>,
+  paypageId: <span class="num">2</span>,
+  accessToken: process.env.<span class="type">ICOUNT_TOKEN</span><span class="cm">!</span>,
+})
+
+<span class="cm">// Option B: Username/password</span>
+<span class="cm">// const pay = createProvider('icount', {</span>
+<span class="cm">//   cid: 'your-cid', paypageId: 2,</span>
+<span class="cm">//   user: 'your-user', pass: 'your-pass',</span>
+<span class="cm">// })</span>
+
+<span class="kw">const</span> session = <span class="kw">await</span> pay.<span class="fn">createSession</span>({
+  amount: <span class="num">200</span>,
+  currency: <span class="str">'ILS'</span>,
+  description: <span class="str">'Consulting Service'</span>,
+  customer: { name: <span class="str">'Israel Israeli'</span>, email: <span class="str">'israel@example.com'</span> },
+  successUrl: <span class="str">'https://yoursite.co.il/thank-you'</span>,
+  webhookUrl: <span class="fn">buildWebhookUrl</span>(<span class="str">'https://yoursite.co.il/api/webhook'</span>, <span class="str">'your-secret'</span>),
+})
+
+<span class="cm">// session.pageUrl → iCount payment page</span>
+<span class="cm">// After payment: tx.documentUrl → Invoice-receipt PDF</span></pre>
+  </div>
+
+  <div class="webhook-box">
+    <h4>Webhook Setup (IPN)</h4>
+    <p>iCount uses IPN (Instant Payment Notification). The webhook URL is set per-transaction via <code>webhookUrl</code> in <code>createSession()</code>. You may also need to enable IPN in your iCount account settings.</p>
+  </div>
+</section>
+</div>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">
+          Built with <span class="footer-heart">&hearts;</span> by <a href="https://bizup.dev" target="_blank">BizUp.dev</a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <a href="/">Home</a>
+        <a href="https://github.com/bizup-dev/bizup-pay" target="_blank">GitHub</a>
+        <a href="https://www.npmjs.com/org/bizup-pay" target="_blank">npm</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
