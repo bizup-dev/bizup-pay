@@ -908,8 +908,8 @@
                 "New Sample": {
                   "description": "Partial refund with the ability to refund partially from the transaction sum",
                   "value": {
-                    "ApiName": "kzFKfohEvL6AOF8aMEJz",
-                    "ApiPassword": "FIDHIh4pAadw3Slbdsjg",
+                    "ApiName": "your-api-name",
+                    "ApiPassword": "your-api-password",
                     "TransactionId": 219282004,
                     "PartialSum": 200,
                     "CancelOnly": false,

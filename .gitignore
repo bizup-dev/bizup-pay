@@ -3,6 +3,7 @@ dist/
 *.tsbuildinfo
 .env
 .env.*
+!.env.example
 .next/
 e2e/results/
 e2e/report/

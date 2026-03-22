@@ -1,3 +1,19 @@
+/**
+ * @bizup-pay/mock-server — LOCAL DEVELOPMENT ONLY
+ *
+ * Security limitations (by design — this is a testing tool):
+ * - No webhook signature validation (accepts any POST body)
+ * - No HTML escaping of user-supplied fields (description, URLs)
+ * - No origin validation on postMessage events
+ * - Fires webhooks to any URL provided (SSRF by design for testing)
+ *
+ * DO NOT deploy this server in production or expose it to the internet.
+ */
+if (process.env.NODE_ENV === 'production') {
+  console.error('ERROR: @bizup-pay/mock-server must not be used in production.')
+  process.exit(1)
+}
+
 import { MorningMockServer } from './morning-mock.js'
 import { CardcomMockServer } from './cardcom-mock.js'
 import { IcountMockServer } from './icount-mock.js'

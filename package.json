@@ -1,8 +1,15 @@
 {
   "name": "bizup-pay",
   "private": true,
-  "version": "0.0.1",
-  "description": "Unified Israeli Payment Framework",
+  "version": "0.1.0",
+  "description": "Unified TypeScript SDK for Israeli payment providers",
+  "author": "BizUp.dev",
+  "license": "MIT",
+  "homepage": "https://pay.bizup.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bizup-dev/bizup-pay.git"
+  },
   "workspaces": [
     "packages/*",
     "examples/*"

@@ -1,17 +1,28 @@
 {
   "name": "@bizup-pay/mock-server",
-  "version": "0.0.1",
-  "description": "Mock payment provider servers for testing BizUp Pay",
+  "version": "0.1.0",
+  "description": "Mock payment provider servers for testing BizUp Pay — DO NOT use in production",
+  "author": "BizUp.dev",
+  "license": "MIT",
+  "homepage": "https://pay.bizup.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bizup-dev/bizup-pay.git",
+    "directory": "packages/mock-server"
+  },
+  "bugs": "https://github.com/bizup-dev/bizup-pay/issues",
+  "keywords": ["payments", "israel", "mock", "testing", "bizup-pay"],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": ["dist"],
+  "publishConfig": { "access": "public" },
+  "engines": { "node": ">=20" },
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
     "start": "node dist/standalone.js"
   },
   "dependencies": {
-    "@bizup-pay/core": "0.0.1"
-  },
-  "license": "MIT"
+    "@bizup-pay/core": "0.1.0"
+  }
 }
