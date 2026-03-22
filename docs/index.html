@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BizUp Pay — Unified Israeli Payment SDK</title>
+  <meta name="description" content="One TypeScript SDK for all Israeli payment providers. Write payment code once, swap providers by config.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #0a2540;
+      background: #fff;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+
+    /* ── Layout ── */
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #e6ebf1;
+    }
+    nav .container {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+    }
+    .nav-logo {
+      font-weight: 700; font-size: 1.15rem;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .nav-logo .dot { color: #635bff; }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a {
+      font-size: 0.9rem; font-weight: 500; color: #425466;
+      transition: color 0.15s;
+    }
+    .nav-links a:hover { color: #0a2540; }
+    .nav-links .btn-github {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 6px;
+      background: #0a2540; color: #fff; font-size: 0.85rem;
+      transition: background 0.15s;
+    }
+    .nav-links .btn-github:hover { background: #1a3550; }
+    .nav-links .btn-github svg { width: 18px; height: 18px; }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 140px 0 80px;
+      background: linear-gradient(180deg, #f6f9fc 0%, #fff 100%);
+    }
+    .hero-inner { max-width: 720px; }
+    .hero-badge {
+      display: inline-block; padding: 4px 14px; border-radius: 20px;
+      background: #f0edff; color: #635bff; font-size: 0.8rem; font-weight: 600;
+      margin-bottom: 20px; letter-spacing: 0.02em;
+    }
+    .hero h1 {
+      font-size: 3.2rem; font-weight: 700; line-height: 1.15;
+      letter-spacing: -0.03em; margin-bottom: 20px;
+    }
+    .hero h1 .highlight {
+      background: linear-gradient(135deg, #635bff, #0073e6);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 1.2rem; color: #425466; max-width: 560px;
+      margin-bottom: 32px; line-height: 1.7;
+    }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 28px; border-radius: 8px;
+      background: #635bff; color: #fff; font-weight: 600; font-size: 0.95rem;
+      transition: background 0.15s, transform 0.1s;
+      border: none; cursor: pointer;
+    }
+    .btn-primary:hover { background: #5147e5; transform: translateY(-1px); }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 28px; border-radius: 8px;
+      background: #fff; color: #0a2540; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid #e6ebf1;
+      transition: border-color 0.15s, transform 0.1s;
+      cursor: pointer;
+    }
+    .btn-secondary:hover { border-color: #c1c9d2; transform: translateY(-1px); }
+
+    /* ── Code Block ── */
+    .code-block {
+      background: #0a2540; border-radius: 12px; padding: 0;
+      margin-top: 48px; overflow: hidden;
+      box-shadow: 0 24px 48px rgba(10,37,64,0.12);
+    }
+    .code-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 20px; background: rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .code-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .code-dot.red { background: #ff5f57; }
+    .code-dot.yellow { background: #febc2e; }
+    .code-dot.green { background: #28c840; }
+    .code-filename {
+      margin-left: 12px; font-size: 0.8rem; color: rgba(255,255,255,0.5);
+    }
+    .code-block pre {
+      padding: 24px; overflow-x: auto; font-size: 0.85rem;
+      line-height: 1.7; color: #a3acb9;
+    }
+    .code-block .kw { color: #c792ea; }
+    .code-block .fn { color: #82aaff; }
+    .code-block .str { color: #c3e88d; }
+    .code-block .cm { color: #546e7a; }
+    .code-block .num { color: #f78c6c; }
+    .code-block .op { color: #89ddff; }
+    .code-block .type { color: #ffcb6b; }
+
+    /* ── Providers ── */
+    .providers {
+      padding: 80px 0;
+      border-bottom: 1px solid #e6ebf1;
+    }
+    .section-label {
+      font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.1em; color: #635bff; margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: 2rem; font-weight: 700; letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+    .section-desc {
+      font-size: 1.05rem; color: #425466; max-width: 560px;
+      margin-bottom: 48px;
+    }
+    .provider-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .provider-card {
+      display: flex; align-items: center; gap: 16px;
+      padding: 24px; border-radius: 10px;
+      border: 1px solid #e6ebf1;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .provider-card:hover {
+      border-color: #c1c9d2;
+      box-shadow: 0 4px 12px rgba(10,37,64,0.06);
+    }
+    .provider-icon {
+      width: 40px; height: 40px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 1rem; color: #fff; flex-shrink: 0;
+    }
+    .provider-info h4 { font-size: 0.95rem; font-weight: 600; }
+    .provider-info p { font-size: 0.8rem; color: #8898aa; margin-top: 2px; }
+    .provider-card.coming-soon {
+      border-style: dashed; opacity: 0.6;
+    }
+
+    /* ── How It Works ── */
+    .how-it-works {
+      padding: 80px 0;
+      background: #f6f9fc;
+    }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    .step { position: relative; }
+    .step-number {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: #635bff; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.9rem; margin-bottom: 16px;
+    }
+    .step h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; }
+    .step p { font-size: 0.9rem; color: #425466; line-height: 1.6; }
+    .step .code-inline {
+      display: block; margin-top: 16px; padding: 16px;
+      background: #0a2540; color: #a3acb9; border-radius: 8px;
+      font-size: 0.8rem; line-height: 1.7; overflow-x: auto;
+    }
+
+    /* ── Features ── */
+    .features {
+      padding: 80px 0;
+      border-bottom: 1px solid #e6ebf1;
+    }
+    .feature-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+    }
+    .feature-card {
+      padding: 32px; border-radius: 10px;
+      border: 1px solid #e6ebf1;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .feature-card:hover {
+      border-color: #c1c9d2;
+      box-shadow: 0 4px 12px rgba(10,37,64,0.06);
+    }
+    .feature-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: #f0edff; color: #635bff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; margin-bottom: 16px;
+    }
+    .feature-card h4 { font-size: 1rem; font-weight: 600; margin-bottom: 8px; }
+    .feature-card p { font-size: 0.88rem; color: #425466; line-height: 1.6; }
+
+    /* ── Quick Start ── */
+    .quickstart {
+      padding: 80px 0;
+      background: #f6f9fc;
+    }
+    .quickstart-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+      align-items: start;
+    }
+    .install-cmd {
+      display: flex; align-items: center; gap: 12px;
+      background: #0a2540; border-radius: 8px; padding: 16px 20px;
+      margin-bottom: 16px; position: relative;
+    }
+    .install-cmd code { color: #a3acb9; font-size: 0.9rem; }
+    .install-cmd .prompt { color: #635bff; user-select: none; }
+    .copy-btn {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: rgba(255,255,255,0.1); border: none; border-radius: 4px;
+      padding: 6px 10px; color: #a3acb9; font-size: 0.75rem; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,0.2); }
+
+    /* ── Footer ── */
+    footer {
+      padding: 48px 0;
+      border-top: 1px solid #e6ebf1;
+    }
+    .footer-inner {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .footer-brand {
+      font-size: 0.85rem; color: #8898aa;
+    }
+    .footer-brand a { color: #635bff; font-weight: 600; }
+    .footer-brand a:hover { text-decoration: underline; }
+    .footer-links {
+      display: flex; gap: 24px;
+    }
+    .footer-links a {
+      font-size: 0.85rem; color: #8898aa;
+      transition: color 0.15s;
+    }
+    .footer-links a:hover { color: #0a2540; }
+    .footer-heart { color: #e25555; }
+    .footer-license {
+      font-size: 0.8rem; color: #8898aa; margin-top: 8px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2.2rem; }
+      .steps { grid-template-columns: 1fr; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .quickstart-grid { grid-template-columns: 1fr; }
+      .nav-links a:not(.btn-github) { display: none; }
+      .footer-inner { flex-direction: column; gap: 16px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav>
+  <div class="container">
+    <a href="#" class="nav-logo">
+      <span class="dot">&#9632;</span> BizUp Pay
+    </a>
+    <div class="nav-links">
+      <a href="#providers">Providers</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#features">Features</a>
+      <a href="#quickstart">Quick Start</a>
+      <a href="https://github.com/bizup-dev/bizup-pay" class="btn-github" target="_blank">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <span class="hero-badge">Open Source &middot; MIT License</span>
+      <h1>
+        One SDK for <span class="highlight">every Israeli<br>payment provider</span>
+      </h1>
+      <p>
+        Write payment code once. Swap providers by changing one line of config.
+        TypeScript-first, framework-agnostic, production-ready.
+      </p>
+      <div class="hero-actions">
+        <a href="#quickstart" class="btn-primary">Get Started</a>
+        <a href="https://github.com/bizup-dev/bizup-pay" class="btn-secondary" target="_blank">View on GitHub</a>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-dot red"></span>
+        <span class="code-dot yellow"></span>
+        <span class="code-dot green"></span>
+        <span class="code-filename">checkout.ts</span>
+      </div>
+<pre><span class="kw">import</span> { createProvider } <span class="kw">from</span> <span class="str">'@bizup-pay/core'</span>
+<span class="kw">import</span> <span class="str">'@bizup-pay/cardcom'</span>  <span class="cm">// or morning, icount, grow</span>
+
+<span class="kw">const</span> provider = <span class="fn">createProvider</span>(<span class="str">'cardcom'</span>, {
+  terminalNumber: <span class="num">1000</span>,
+  apiName: process.env.<span class="type">CARDCOM_API_NAME</span>,
+})
+
+<span class="kw">const</span> session = <span class="kw">await</span> provider.<span class="fn">createSession</span>({
+  amount: <span class="num">100</span>,
+  currency: <span class="str">'ILS'</span>,
+  description: <span class="str">'Order #1234'</span>,
+  successUrl: <span class="str">'https://myshop.co.il/success'</span>,
+  webhookUrl: <span class="str">'https://myshop.co.il/api/webhook'</span>,
+})
+
+<span class="cm">// Redirect customer to session.pageUrl — done.</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ── Providers ── -->
+<section class="providers" id="providers">
+  <div class="container">
+    <div class="section-label">Supported Providers</div>
+    <h2 class="section-title">All major Israeli payment gateways</h2>
+    <p class="section-desc">
+      Each provider is a separate package. Install only what you need.
+      Same API, same types, same behavior.
+    </p>
+    <div class="provider-grid">
+      <div class="provider-card">
+        <div class="provider-icon" style="background: #1abc9c;">M</div>
+        <div class="provider-info">
+          <h4>Morning</h4>
+          <p>Green Invoice</p>
+        </div>
+      </div>
+      <div class="provider-card">
+        <div class="provider-icon" style="background: #e74c3c;">C</div>
+        <div class="provider-info">
+          <h4>Cardcom</h4>
+          <p>Credit card processing</p>
+        </div>
+      </div>
+      <div class="provider-card">
+        <div class="provider-icon" style="background: #3498db;">i</div>
+        <div class="provider-info">
+          <h4>iCount</h4>
+          <p>Accounting + payments</p>
+        </div>
+      </div>
+      <div class="provider-card">
+        <div class="provider-icon" style="background: #6053dd;">G</div>
+        <div class="provider-info">
+          <h4>Grow.il</h4>
+          <p>Meshulam</p>
+        </div>
+      </div>
+      <div class="provider-card coming-soon">
+        <div class="provider-icon" style="background: #8898aa;">+</div>
+        <div class="provider-info">
+          <h4>More coming</h4>
+          <p>PayMe, Tranzila, ...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── How It Works ── -->
+<section class="how-it-works" id="how-it-works">
+  <div class="container">
+    <div class="section-label">How It Works</div>
+    <h2 class="section-title">Three steps to accepting payments</h2>
+    <p class="section-desc">Server-side session creation, client-side payment page, server-side webhook confirmation.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <h3>Create a session</h3>
+        <p>Call <code>createSession()</code> from your server with amount, customer, and URLs. Get back a hosted payment page URL.</p>
+        <pre class="code-inline"><span style="color:#c792ea">const</span> session = <span style="color:#c792ea">await</span> provider.<span style="color:#82aaff">createSession</span>({
+  amount: <span style="color:#f78c6c">100</span>,
+  currency: <span style="color:#c3e88d">'ILS'</span>,
+  webhookUrl: <span style="color:#c3e88d">'...'</span>,
+})</pre>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <h3>Customer pays</h3>
+        <p>Redirect to <code>session.pageUrl</code> or embed it in an iframe/modal using the client SDK. The provider handles PCI compliance.</p>
+        <pre class="code-inline"><span style="color:#546e7a">// Redirect</span>
+window.location.href = session.pageUrl
+
+<span style="color:#546e7a">// Or embed</span>
+bizupPay.<span style="color:#82aaff">mount</span>(session, el)</pre>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <h3>Confirm via webhook</h3>
+        <p>Parse the provider's webhook with <code>parseWebhook()</code>. Get a unified <code>BizupTransaction</code> object regardless of provider.</p>
+        <pre class="code-inline"><span style="color:#c792ea">const</span> event = <span style="color:#c792ea">await</span> provider
+  .<span style="color:#82aaff">parseWebhook</span>(body)
+
+<span style="color:#c792ea">if</span> (event.type === <span style="color:#c3e88d">'payment.completed'</span>) {
+  <span style="color:#546e7a">// fulfill order</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ── -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="section-label">Features</div>
+    <h2 class="section-title">Built for real-world payments</h2>
+    <p class="section-desc">Everything you need to integrate Israeli payment providers into your app.</p>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">&#123;&#125;</div>
+        <h4>Unified API</h4>
+        <p>Same interface for all providers. <code>createSession</code>, <code>getTransaction</code>, <code>refund</code>, <code>parseWebhook</code> — works identically everywhere.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">TS</div>
+        <h4>TypeScript First</h4>
+        <p>Full type safety with strict mode. Autocomplete for every parameter, discriminated unions for webhook events, typed provider extras.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#9638;</div>
+        <h4>Iframe, Redirect & Modal</h4>
+        <p>Client SDK mounts payment pages as inline iframes, full-page redirects, or modals. One line to switch modes.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#8634;</div>
+        <h4>Webhooks & Refunds</h4>
+        <p>Parse any provider's webhook into a standard event. Process full or partial refunds through the same API.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#9881;</div>
+        <h4>Mock Servers</h4>
+        <p>Full mock servers for every provider. Test the entire payment flow locally without real credentials or sandbox accounts.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#128196;</div>
+        <h4>Document URLs</h4>
+        <p>Retrieve invoice and receipt URLs from providers that support document generation. Built into <code>getTransaction()</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Quick Start ── -->
+<section class="quickstart" id="quickstart">
+  <div class="container">
+    <div class="section-label">Quick Start</div>
+    <h2 class="section-title">Up and running in minutes</h2>
+    <p class="section-desc">Install the core and your provider package. That's it.</p>
+    <div class="quickstart-grid">
+      <div>
+        <div class="install-cmd">
+          <code><span class="prompt">$</span> npm install @bizup-pay/core @bizup-pay/cardcom</code>
+          <button class="copy-btn" onclick="copyInstall(this)">Copy</button>
+        </div>
+        <div class="install-cmd">
+          <code><span class="prompt">$</span> npm install @bizup-pay/client</code>
+          <button class="copy-btn" onclick="copyInstall(this)">Copy</button>
+        </div>
+        <p style="font-size:0.85rem; color:#425466; margin-top:20px;">
+          Or use the CDN bundle — no build tools required:
+        </p>
+        <div class="install-cmd" style="margin-top:12px;">
+          <code style="font-size:0.78rem;">&lt;script src="https://unpkg.com/@bizup-pay/client"&gt;&lt;/script&gt;</code>
+        </div>
+      </div>
+      <div class="code-block" style="margin-top:0;">
+        <div class="code-header">
+          <span class="code-dot red"></span>
+          <span class="code-dot yellow"></span>
+          <span class="code-dot green"></span>
+          <span class="code-filename">server.ts</span>
+        </div>
+<pre><span class="kw">import</span> { createProvider } <span class="kw">from</span> <span class="str">'@bizup-pay/core'</span>
+<span class="kw">import</span> <span class="str">'@bizup-pay/cardcom'</span>
+
+<span class="kw">const</span> pay = <span class="fn">createProvider</span>(<span class="str">'cardcom'</span>, {
+  terminalNumber: <span class="num">1000</span>,
+  apiName: process.env.<span class="type">CARDCOM_API_NAME</span><span class="op">!</span>,
+  apiPassword: process.env.<span class="type">CARDCOM_API_PASSWORD</span><span class="op">!</span>,
+})
+
+<span class="cm">// Create checkout session</span>
+<span class="kw">const</span> session = <span class="kw">await</span> pay.<span class="fn">createSession</span>({
+  amount: <span class="num">149.90</span>,
+  currency: <span class="str">'ILS'</span>,
+  description: <span class="str">'Premium Plan'</span>,
+  customer: { name: <span class="str">'Israel Israeli'</span> },
+  successUrl: <span class="str">'https://myapp.co.il/thanks'</span>,
+  webhookUrl: <span class="str">'https://myapp.co.il/api/webhook'</span>,
+})
+
+<span class="cm">// Handle webhook</span>
+<span class="kw">const</span> event = <span class="kw">await</span> pay.<span class="fn">parseWebhook</span>(body)
+<span class="cm">// event.transaction.amount → 149.90</span>
+<span class="cm">// event.transaction.status → 'completed'</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!--
+  TODO: Stripe-inspired interactive features for future versions:
+  - [ ] Sandbox / API Explorer: Interactive API playground where developers
+        can make real API calls against mock servers from the browser.
+        Study Stripe's dashboard sandbox and inline shell at stripe.com/docs
+  - [ ] Inline Shell: Terminal-like component showing live curl/code examples
+        that can be edited and executed in real-time (like Stripe's API docs)
+  - [ ] Provider Comparison Tool: Side-by-side feature matrix showing which
+        providers support which BizUp Pay features (recurring, documents, etc.)
+  - [ ] Live Code Editor: Monaco-based code editor with TypeScript completion
+        that lets developers test BizUp Pay API calls directly from docs
+-->
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">
+          Built with <span class="footer-heart">&hearts;</span> by <a href="https://bizup.dev" target="_blank">BizUp.dev</a>
+        </div>
+        <div class="footer-license">MIT License &middot; &copy; 2024&ndash;2026 BizUp.dev</div>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/bizup-dev/bizup-pay" target="_blank">GitHub</a>
+        <a href="https://www.npmjs.com/org/bizup-pay" target="_blank">npm</a>
+        <a href="https://github.com/bizup-dev/bizup-pay/blob/main/README.md" target="_blank">Docs</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+function copyInstall(btn) {
+  const code = btn.parentElement.querySelector('code').textContent.replace(/^\$\s*/, '')
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = 'Copied!'
+    setTimeout(() => btn.textContent = 'Copy', 1500)
+  })
+}
+</script>
+
+</body>
+</html>
