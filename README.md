@@ -111,10 +111,14 @@ bizupPay.mount(session, document.getElementById('payment'), {
 })
 ```
 
-Or via CDN:
+Or via CDN (no build tools required):
 
 ```html
-<script src="https://unpkg.com/@bizup-pay/client/dist/bizup-pay.min.js"></script>
+<!-- unpkg -->
+<script src="https://unpkg.com/@bizup-pay/client@0.1.0/dist/bizup-pay.min.js"></script>
+
+<!-- jsdelivr -->
+<script src="https://cdn.jsdelivr.net/npm/@bizup-pay/client@0.1.0/dist/bizup-pay.min.js"></script>
 ```
 
 ## Development
