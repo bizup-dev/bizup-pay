@@ -22,6 +22,7 @@
     { "path": "packages/client" },
     { "path": "packages/icount" },
     { "path": "packages/grow" },
+    { "path": "packages/tranzilla" },
     { "path": "packages/mock-server" }
   ]
 }

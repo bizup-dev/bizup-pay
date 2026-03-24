@@ -4,6 +4,7 @@ import '@bizup-pay/morning'
 import '@bizup-pay/cardcom'
 import '@bizup-pay/icount'
 import '@bizup-pay/grow'
+import '@bizup-pay/tranzilla'
 import { addPurchase } from '../../../lib/store'
 import type { ProviderKey } from '../../../lib/constants'
 
@@ -30,12 +31,19 @@ const mockConfigs: Record<string, Record<string, unknown>> = {
     userId: 'mock-user',
     baseUrl: process.env.GROW_MOCK_URL || 'http://localhost:4400/api/light/server/1.0',
   },
+  tranzilla: {
+    appKey: 'mock-app-key',
+    secretKey: 'mock-secret-key',
+    terminal: 'mock-terminal',
+    baseUrl: process.env.TRANZILLA_MOCK_URL || 'http://localhost:4500/v1',
+  },
 }
 
 function detectProvider(body: Record<string, unknown>): ProviderKey | null {
   if (body.LowProfileId || body.TranzactionId !== undefined) return 'cardcom'
   if (body.sale_sid || body.sale_uniqid) return 'icount'
   if (body.transactionId && body.transactionToken && body.asmachta !== undefined) return 'grow'
+  if (body.tranzila_id && body.transaction_id) return 'tranzilla'
   if (body.id && body.type !== undefined) return 'morning'
   return null
 }
