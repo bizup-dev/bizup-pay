@@ -1,6 +1,6 @@
 {
   "name": "@bizup-pay/client",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Browser SDK for BizUp Pay — iframe, modal, and redirect payment mounting",
   "author": "BizUp.dev",
   "license": "MIT",
@@ -11,17 +11,30 @@
     "directory": "packages/client"
   },
   "bugs": "https://github.com/bizup-dev/bizup-pay/issues",
-  "keywords": ["payments", "israel", "browser", "iframe", "modal", "bizup-pay"],
+  "keywords": [
+    "payments",
+    "israel",
+    "browser",
+    "iframe",
+    "modal",
+    "bizup-pay"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist"],
-  "publishConfig": { "access": "public" },
-  "engines": { "node": ">=20" },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsc",
     "test": "vitest run"
   },
   "dependencies": {
-    "@bizup-pay/core": "0.1.0"
+    "@bizup-pay/core": "0.1.1"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@bizup-pay/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Core types and factory for BizUp Pay — unified Israeli payment SDK",
   "author": "BizUp.dev",
   "license": "MIT",
@@ -11,12 +11,24 @@
     "directory": "packages/core"
   },
   "bugs": "https://github.com/bizup-dev/bizup-pay/issues",
-  "keywords": ["payments", "israel", "payment-gateway", "typescript", "bizup-pay"],
+  "keywords": [
+    "payments",
+    "israel",
+    "payment-gateway",
+    "typescript",
+    "bizup-pay"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist"],
-  "publishConfig": { "access": "public" },
-  "engines": { "node": ">=20" },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsc",
     "test": "vitest run"
