@@ -1,0 +1,138 @@
+# BizUp Pay — LLM Integration Guide
+
+> One TypeScript SDK for every Israeli payment provider. Write payment code once, swap providers by config.
+
+Docs: https://pay.bizup.dev
+GitHub: https://github.com/bizup-dev/bizup-pay
+Full reference: https://pay.bizup.dev/llms-full.txt
+
+## Install
+
+Pick a provider and install core + adapter:
+
+```bash
+npm install @bizup-pay/core @bizup-pay/cardcom    # or morning, icount, grow
+```
+
+For browser payment UI (iframe/modal/redirect):
+
+```bash
+npm install @bizup-pay/client
+```
+
+## Providers
+
+| Provider | Package | Config keys |
+|----------|---------|-------------|
+| Cardcom | `@bizup-pay/cardcom` | `terminalNumber`, `apiName`, `apiPassword` |
+| Morning (Green Invoice) | `@bizup-pay/morning` | `apiKey`, `apiSecret` |
+| iCount | `@bizup-pay/icount` | `companyId`, `user`, `pass` |
+| Grow.il (Meshulam) | `@bizup-pay/grow` | `pageCode`, `apiKey` |
+
+## Server-Side: Create a Payment Session
+
+```typescript
+import { createProvider } from '@bizup-pay/core'
+import '@bizup-pay/cardcom' // registers the provider — swap this import to switch
+
+const provider = createProvider('cardcom', {
+  terminalNumber: 1000,
+  apiName: process.env.CARDCOM_API_NAME!,
+  apiPassword: process.env.CARDCOM_API_PASSWORD!,
+})
+
+const session = await provider.createSession({
+  amount: 100,
+  currency: 'ILS',
+  description: 'Order #1234',
+  successUrl: 'https://myshop.co.il/success',
+  webhookUrl: 'https://myshop.co.il/api/webhook',
+  customer: { name: 'Israel Israeli', email: 'israel@example.com' },
+})
+
+// session.pageUrl — redirect or mount this URL for the customer to pay
+```
+
+## Server-Side: Handle Webhook
+
+```typescript
+// POST /api/webhook
+const event = await provider.parseWebhook(req.body)
+
+if (event.type === 'payment.completed') {
+  // event.transaction has: id, amount, status, paymentMethod, cardBrand, cardLastFour, documentUrl
+  await fulfillOrder(event.transaction)
+}
+// Other types: 'payment.failed', 'payment.cancelled'
+```
+
+## Server-Side: Get Transaction & Refund
+
+```typescript
+const tx = await provider.getTransaction('tx_123')
+// tx.amount, tx.status, tx.cardBrand, tx.documentUrl, tx.customer
+
+const refund = await provider.refund({ transactionId: 'tx_123' })
+// refund.id, refund.amount, refund.status
+```
+
+## Browser: Mount Payment UI
+
+```typescript
+import { BizupPay } from '@bizup-pay/client'
+
+const bizupPay = new BizupPay()
+bizupPay.mount(session, document.getElementById('payment'), {
+  onSuccess: () => window.location.href = '/thank-you',
+  onFailure: (err) => console.error(err),
+  onCancel: () => console.log('cancelled'),
+})
+```
+
+Modes: `iframe` (embed in container), `modal` (overlay), `redirect` (full page navigation).
+
+## Switch Providers
+
+Change the import and config — all other code stays identical:
+
+```typescript
+// Before: Cardcom
+import '@bizup-pay/cardcom'
+const provider = createProvider('cardcom', { terminalNumber: 1000, apiName: '...', apiPassword: '...' })
+
+// After: Morning
+import '@bizup-pay/morning'
+const provider = createProvider('morning', { apiKey: '...', apiSecret: '...' })
+```
+
+## Error Handling
+
+All errors are `BizupPayError` with structured fields:
+
+```typescript
+try {
+  await provider.createSession(params)
+} catch (err) {
+  if (err instanceof BizupPayError) {
+    err.code      // 'AUTHENTICATION_ERROR' | 'VALIDATION_ERROR' | 'PROVIDER_ERROR' | 'NETWORK_ERROR'
+    err.provider  // 'cardcom' | 'morning' | 'icount' | 'grow'
+    err.message   // human-readable
+    err.providerError // raw error from provider API
+  }
+}
+```
+
+## Testing with Mock Server
+
+```bash
+npm install --save-dev @bizup-pay/mock-server
+```
+
+```typescript
+import { createMockServer } from '@bizup-pay/mock-server'
+
+const mock = createMockServer({ autoComplete: true })
+await mock.start()
+// Point provider config at localhost — runs full payment flow locally
+await mock.stop()
+```
