@@ -1,6 +1,6 @@
 {
   "name": "@bizup-pay/cardcom",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Cardcom adapter for BizUp Pay",
   "author": "BizUp.dev",
   "license": "MIT",
@@ -11,17 +11,29 @@
     "directory": "packages/cardcom"
   },
   "bugs": "https://github.com/bizup-dev/bizup-pay/issues",
-  "keywords": ["payments", "israel", "cardcom", "credit-card", "bizup-pay"],
+  "keywords": [
+    "payments",
+    "israel",
+    "cardcom",
+    "credit-card",
+    "bizup-pay"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist"],
-  "publishConfig": { "access": "public" },
-  "engines": { "node": ">=20" },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsc",
     "test": "vitest run"
   },
   "dependencies": {
-    "@bizup-pay/core": "0.1.0"
+    "@bizup-pay/core": "0.1.1"
   }
 }

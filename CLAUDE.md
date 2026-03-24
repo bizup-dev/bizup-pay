@@ -147,6 +147,58 @@ examples/checkout-demo/src/
     api/transactions/        # GET: list purchases, GET [id]: getTransaction()
 ```
 
+## Versioning & Publishing
+
+This repo uses [Changesets](https://github.com/changesets/changesets) for version management and npm publishing.
+
+### Rules
+
+- **Every commit/PR that changes package code MUST include a changeset.** Run `npx changeset` before committing and select the affected packages.
+- **Patch bump** for bug fixes, docs, refactors within a package.
+- **Minor bump** for new features, new exports, non-breaking additions.
+- **Major bump** only at release time (see below).
+- If a commit only touches non-package files (docs site, CI, root config, examples), no changeset is needed.
+- `@bizup-pay/core` changes often affect all providers — select all dependent packages when bumping core.
+
+### Workflow
+
+```bash
+# 1. After making changes, record what changed (interactive prompt)
+npx changeset
+# → Select affected packages, pick patch/minor, write summary
+# → Creates a file in .changeset/ — commit it with your code
+
+# 2. At release time: consume all pending changesets, bump versions, generate CHANGELOGs
+npx changeset version
+# → Review the version bumps and CHANGELOG.md updates in each package
+# → Commit the result
+
+# 3. Publish all updated packages to npm (in dependency order, core first)
+npx changeset publish
+```
+
+### Publishing (manual)
+
+If `changeset publish` fails or you need to publish manually, **order matters** — core must go first:
+
+```bash
+npm run build
+npm publish --workspace packages/core --access public
+npm publish --workspace packages/morning --access public
+npm publish --workspace packages/cardcom --access public
+npm publish --workspace packages/icount --access public
+npm publish --workspace packages/grow --access public
+npm publish --workspace packages/client --access public
+npm publish --workspace packages/mock-server --access public
+```
+
+### Agent Instructions
+
+When committing code that modifies any file under `packages/*/src/`:
+1. Run `npx changeset` — select affected packages, use **patch** for fixes/refactors, **minor** for features.
+2. Commit the generated `.changeset/*.md` file together with the code changes.
+3. Do NOT run `changeset version` or `changeset publish` unless explicitly asked — those are release-time operations.
+
 ## Conventions
 
 - **TypeScript strict mode**, ES2022 target, Node16 module resolution

@@ -1,0 +1,465 @@
+# BizUp Pay — Full LLM Reference
+
+> One TypeScript SDK for every Israeli payment provider. Write payment code once, swap providers by config.
+
+Docs: https://pay.bizup.dev
+GitHub: https://github.com/bizup-dev/bizup-pay
+Quick guide: https://pay.bizup.dev/llms.txt
+
+---
+
+## Architecture
+
+Three-layer design: core + provider adapter + browser client.
+
+```
+Your Server                          Browser
+┌──────────────────────────┐        ┌──────────────────────┐
+│ @bizup-pay/core          │        │ @bizup-pay/client    │
+│   createProvider()       │        │   BizupPay.mount()   │
+│   types, errors, factory │        │   iframe/modal/redir │
+├──────────────────────────┤        └──────────────────────┘
+│ @bizup-pay/cardcom       │
+│ @bizup-pay/morning       │  ←── pick one (or many)
+│ @bizup-pay/icount        │
+│ @bizup-pay/grow          │
+└──────────────────────────┘
+```
+
+Every provider adapter implements the same `BizupProvider` interface. Your application code only talks to the interface — never to provider APIs directly.
+
+---
+
+## Install
+
+```bash
+# Server: core + one or more providers
+npm install @bizup-pay/core @bizup-pay/cardcom
+
+# Browser (optional): payment UI mounting
+npm install @bizup-pay/client
+
+# Testing (optional): local mock servers
+npm install --save-dev @bizup-pay/mock-server
+```
+
+---
+
+## Provider Configuration
+
+### Cardcom
+
+```typescript
+import { createProvider } from '@bizup-pay/core'
+import '@bizup-pay/cardcom'
+
+const provider = createProvider('cardcom', {
+  terminalNumber: 1000,           // required — your Cardcom terminal number
+  apiName: 'your_api_name',       // required
+  apiPassword: 'your_api_pass',   // optional, depends on terminal config
+})
+```
+
+### Morning (Green Invoice)
+
+```typescript
+import '@bizup-pay/morning'
+
+const provider = createProvider('morning', {
+  apiKey: 'your_api_key',         // required
+  apiSecret: 'your_api_secret',   // required
+  sandbox: true,                  // optional — use sandbox environment
+})
+```
+
+### iCount
+
+```typescript
+import '@bizup-pay/icount'
+
+const provider = createProvider('icount', {
+  companyId: 'your_company_id',   // required
+  user: 'api_user',               // required
+  pass: 'api_pass',               // required
+})
+```
+
+### Grow.il (Meshulam)
+
+```typescript
+import '@bizup-pay/grow'
+
+const provider = createProvider('grow', {
+  pageCode: 'your_page_code',     // required
+  apiKey: 'your_api_key',         // required
+})
+```
+
+---
+
+## Provider Interface
+
+Every provider implements these 4 methods:
+
+```typescript
+interface BizupProvider {
+  readonly name: ProviderName  // 'morning' | 'cardcom' | 'icount' | 'grow'
+
+  createSession(params: CreateSessionParams): Promise<BizupPaymentSession>
+  getTransaction(id: string): Promise<BizupTransaction>
+  refund(params: RefundParams): Promise<BizupRefund>
+  parseWebhook(body: unknown, headers?: Record<string, string>): Promise<BizupWebhookEvent>
+}
+```
+
+---
+
+## Types
+
+### CreateSessionParams (input to createSession)
+
+```typescript
+{
+  amount: number                    // required — payment amount
+  currency?: string                 // default: 'ILS'
+  description: string               // required — shown to customer
+  customer?: {
+    name?: string
+    email?: string
+    phone?: string
+  }
+  successUrl: string                // required — redirect after successful payment
+  failureUrl?: string               // redirect after failed payment
+  cancelUrl?: string                // redirect if customer cancels
+  webhookUrl: string                // required — server endpoint for payment notifications
+  metadata?: Record<string, string> // custom key-value pairs passed through
+  installments?: {
+    min?: number
+    max?: number
+  }
+  language?: string                 // 'he' | 'en' | 'ar'
+  recurring?: {
+    interval: 'month' | 'year'
+    count?: number
+  }
+}
+```
+
+### BizupPaymentSession (output of createSession)
+
+```typescript
+{
+  id: string                        // session ID
+  provider: ProviderName
+  amount: number
+  currency: string
+  description: string
+  pageUrl: string                   // URL to redirect customer to — or mount with client SDK
+  successUrl: string
+  failureUrl?: string
+  cancelUrl?: string
+  webhookUrl: string
+  metadata?: Record<string, string>
+  status: 'pending' | 'completed' | 'failed' | 'cancelled'
+  operation?: string                // provider-specific operation ID
+  expiresAt?: Date
+}
+```
+
+### BizupTransaction (output of getTransaction and parseWebhook)
+
+```typescript
+{
+  id: string                        // BizUp-normalized transaction ID
+  providerTransactionId: string     // raw provider transaction ID
+  provider: ProviderName
+  amount: number
+  currency: string
+  status: TransactionStatus         // 'pending' | 'completed' | 'failed' | 'cancelled' | 'refunded'
+  paymentMethod: PaymentMethod      // 'credit_card' | 'bit' | 'apple_pay' | 'google_pay' | 'bank_transfer' | 'paypal'
+  cardBrand?: CardBrand             // 'visa' | 'mastercard' | 'amex' | 'isracard' | 'diners' | 'discover' | 'jcb'
+  cardLastFour?: string
+  installments?: number
+  documentUrl?: string              // link to invoice/receipt PDF
+  customer?: {
+    name?: string
+    email?: string
+    phone?: string
+  }
+  createdAt: Date
+
+  // Provider-specific extras (typed per provider)
+  morning?: MorningExtras
+  cardcom?: CardcomExtras
+  icount?: ICountExtras
+  grow?: GrowExtras
+
+  raw: unknown                      // full raw provider response — escape hatch
+}
+```
+
+### BizupWebhookEvent (output of parseWebhook)
+
+```typescript
+{
+  type: 'payment.completed' | 'payment.failed' | 'payment.cancelled'
+  transaction: BizupTransaction
+  timestamp: Date
+}
+```
+
+### BizupRefund (output of refund)
+
+```typescript
+{
+  id: string
+  transactionId: string
+  amount: number
+  status: 'pending' | 'completed' | 'failed'
+  createdAt: Date
+}
+```
+
+### RefundParams (input to refund)
+
+```typescript
+{
+  transactionId: string             // required
+  amount?: number                   // optional — partial refund amount (defaults to full)
+}
+```
+
+---
+
+## Error Handling
+
+All errors are instances of `BizupPayError`:
+
+```typescript
+import { BizupPayError } from '@bizup-pay/core'
+
+try {
+  const session = await provider.createSession(params)
+} catch (err) {
+  if (err instanceof BizupPayError) {
+    err.code           // error category — see below
+    err.provider       // which provider threw
+    err.message        // human-readable description
+    err.providerError  // raw error from provider API (for debugging)
+  }
+}
+```
+
+### Error Codes
+
+| Code | Meaning |
+|------|---------|
+| `AUTHENTICATION_ERROR` | Invalid API credentials |
+| `VALIDATION_ERROR` | Invalid parameters (missing fields, bad values) |
+| `PROVIDER_ERROR` | Provider API returned an error |
+| `NETWORK_ERROR` | Could not reach provider API |
+| `NOT_FOUND` | Transaction or resource not found |
+
+---
+
+## Payment Methods by Provider
+
+| Method | Morning | Cardcom | iCount | Grow |
+|--------|:---:|:---:|:---:|:---:|
+| Credit Card | yes | yes | yes | yes |
+| Bit | yes | yes | yes | yes |
+| Apple Pay | yes | yes | — | yes |
+| Google Pay | yes | yes | — | yes |
+| PayPal | yes | yes | yes | — |
+| Bank Transfer | yes | — | — | yes |
+
+---
+
+## Browser Client SDK
+
+### Install
+
+```bash
+npm install @bizup-pay/client
+```
+
+Or via CDN:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bizup-pay/client/dist/bizup-pay.min.js"></script>
+```
+
+### Usage
+
+```typescript
+import { BizupPay } from '@bizup-pay/client'
+
+const bizupPay = new BizupPay()
+
+// Mount in a container (iframe mode)
+bizupPay.mount(session, document.getElementById('payment-container'), {
+  onSuccess: (data) => { /* payment succeeded */ },
+  onFailure: (error) => { /* payment failed */ },
+  onCancel: () => { /* customer cancelled */ },
+})
+```
+
+### Mounting Modes
+
+| Mode | Behavior |
+|------|----------|
+| `iframe` | Embeds payment page in a container element |
+| `modal` | Opens payment page in an overlay modal |
+| `redirect` | Navigates browser to provider's payment page |
+
+---
+
+## Provider API Mapping
+
+How BizUp Pay methods map to provider APIs:
+
+| BizUp Method | Morning | Cardcom | iCount | Grow |
+|---|---|---|---|---|
+| `createSession` | `POST /payments/form` | `POST /LowProfile/Create` | `POST /paypage/generate_sale` | `POST /createPaymentProcess` |
+| `getTransaction` | `GET /documents/{id}` | `POST /Transactions/GetTransactionInfoById` | `POST /doc/info` | `POST /getPaymentProcessInfo` |
+| `refund` | `POST /documents` (credit note) | `POST /Transactions/RefundByTransactionId` | `POST /doc/cancel` + `refund_cc` | `POST /cancelTransaction` |
+| `parseWebhook` | Document payload | LowProfile webhook | IPN payload | Webhook payload |
+| Auth | Bearer token (key:secret) | Per-request body params | SID (cached 19min) | API key in body |
+
+---
+
+## Testing with Mock Server
+
+```bash
+npm install --save-dev @bizup-pay/mock-server
+```
+
+### Programmatic (for unit/integration tests)
+
+```typescript
+import { createMockServer } from '@bizup-pay/mock-server'
+
+const mock = createMockServer({ autoComplete: true })
+await mock.start()
+
+// Configure provider to point at mock server
+const provider = createProvider('cardcom', {
+  terminalNumber: 1000,
+  apiName: 'test',
+  // baseUrl will point to localhost mock
+})
+
+// ... run tests ...
+
+mock.reset()       // clear state between tests
+await mock.stop()
+```
+
+### Standalone (for development)
+
+```bash
+npx bizup-mock-server
+# Starts mock servers on ports 4100 (Morning), 4200 (Cardcom), 4300 (iCount)
+```
+
+Mock servers provide:
+- Payment HTML pages with success/fail buttons
+- Webhook delivery to your webhookUrl
+- postMessage support for iframe/modal testing
+- `autoComplete` mode for fully automated test flows
+- Transaction storage for getTransaction() testing
+
+---
+
+## Complete Integration Example
+
+### Next.js API Route (server)
+
+```typescript
+// app/api/checkout/route.ts
+import { createProvider } from '@bizup-pay/core'
+import '@bizup-pay/cardcom'
+
+const provider = createProvider('cardcom', {
+  terminalNumber: Number(process.env.CARDCOM_TERMINAL),
+  apiName: process.env.CARDCOM_API_NAME!,
+  apiPassword: process.env.CARDCOM_API_PASSWORD!,
+})
+
+export async function POST(req: Request) {
+  const { amount, description } = await req.json()
+
+  const session = await provider.createSession({
+    amount,
+    description,
+    currency: 'ILS',
+    successUrl: `${process.env.NEXT_PUBLIC_URL}/success`,
+    webhookUrl: `${process.env.NEXT_PUBLIC_URL}/api/webhook`,
+  })
+
+  return Response.json({ pageUrl: session.pageUrl, sessionId: session.id })
+}
+```
+
+### Webhook Handler (server)
+
+```typescript
+// app/api/webhook/route.ts
+export async function POST(req: Request) {
+  const body = await req.json()
+  const event = await provider.parseWebhook(body)
+
+  if (event.type === 'payment.completed') {
+    const tx = event.transaction
+    // tx.id, tx.amount, tx.status, tx.paymentMethod, tx.cardLastFour, tx.documentUrl
+    await db.orders.update({ transactionId: tx.id, status: 'paid' })
+  }
+
+  return new Response('ok')
+}
+```
+
+### Checkout Page (browser)
+
+```typescript
+// app/checkout/page.tsx
+import { BizupPay } from '@bizup-pay/client'
+
+async function handleCheckout() {
+  const res = await fetch('/api/checkout', {
+    method: 'POST',
+    body: JSON.stringify({ amount: 100, description: 'Order #1234' }),
+  })
+  const { pageUrl } = await res.json()
+
+  const bizupPay = new BizupPay()
+  bizupPay.mount({ pageUrl }, document.getElementById('payment')!, {
+    onSuccess: () => window.location.href = '/success',
+    onFailure: (err) => alert(err.message),
+  })
+}
+```
+
+---
+
+## Switching Providers
+
+The entire point of BizUp Pay is provider portability. To switch:
+
+1. Change the import: `import '@bizup-pay/morning'` instead of `import '@bizup-pay/cardcom'`
+2. Change the config: `createProvider('morning', { apiKey, apiSecret })`
+3. Everything else stays identical — createSession, parseWebhook, getTransaction, refund all work the same.
+
+You can even support multiple providers simultaneously:
+
+```typescript
+import '@bizup-pay/cardcom'
+import '@bizup-pay/morning'
+
+const cardcom = createProvider('cardcom', { ... })
+const morning = createProvider('morning', { ... })
+
+// Route by customer preference, A/B test, or business logic
+const provider = customer.prefersBit ? morning : cardcom
+const session = await provider.createSession(params)
+```
