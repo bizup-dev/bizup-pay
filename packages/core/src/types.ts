@@ -1,4 +1,4 @@
-export type ProviderName = 'morning' | 'cardcom' | 'icount' | 'grow'
+export type ProviderName = 'morning' | 'cardcom' | 'icount' | 'grow' | 'tranzilla'
 
 export type PaymentMethod =
   | 'credit_card'
@@ -85,6 +85,7 @@ export interface BizupTransaction {
   cardcom?: CardcomExtras
   icount?: IcountExtras
   grow?: GrowExtras
+  tranzilla?: TranzillaExtras
   raw: unknown
 }
 
@@ -124,6 +125,15 @@ export interface IcountExtras {
   doctype?: string
   docnum?: number
   confirmationCode?: string
+  [key: string]: unknown
+}
+
+export interface TranzillaExtras {
+  tranzilaId?: string
+  approvalNumber?: string
+  token?: string
+  tokenExpiry?: string
+  standingOrderId?: string
   [key: string]: unknown
 }
 

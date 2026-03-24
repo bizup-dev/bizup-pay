@@ -33,21 +33,23 @@ export async function warmup(browser: import('@playwright/test').Browser) {
 }
 
 /** Add a T-Shirt to cart and go to checkout with specified provider */
-export async function addItemAndCheckout(page: Page, provider: 'morning' | 'cardcom' | 'icount') {
+export async function addItemAndCheckout(page: Page, provider: 'morning' | 'cardcom' | 'icount' | 'tranzilla') {
   await page.goto('/')
   await page.getByRole('button', { name: 'Add to Cart' }).first().click()
   const btnName = provider === 'cardcom' ? 'Checkout with Cardcom'
     : provider === 'icount' ? 'Checkout with iCount'
+    : provider === 'tranzilla' ? 'Checkout with Tranzilla'
     : 'Checkout with Morning'
   await page.getByRole('button', { name: btnName }).click()
   await expect(page).toHaveURL(/\/checkout\?/)
 }
 
 /** Go to subscribe page and pick the Pro plan (monthly) with specified provider */
-export async function subscribeProPlan(page: Page, provider: 'morning' | 'cardcom' | 'icount') {
+export async function subscribeProPlan(page: Page, provider: 'morning' | 'cardcom' | 'icount' | 'tranzilla') {
   await page.goto('/subscribe')
   const btnName = provider === 'cardcom' ? 'Subscribe via Cardcom'
     : provider === 'icount' ? 'Subscribe via iCount'
+    : provider === 'tranzilla' ? 'Subscribe via Tranzilla'
     : 'Subscribe via Morning'
   await page.locator('div:has(> div:text("Most Popular"))').getByRole('button', { name: btnName }).click()
   await expect(page).toHaveURL(/\/checkout\?/)

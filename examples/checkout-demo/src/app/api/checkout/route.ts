@@ -4,6 +4,7 @@ import '@bizup-pay/morning'
 import '@bizup-pay/cardcom'
 import '@bizup-pay/icount'
 import '@bizup-pay/grow'
+import '@bizup-pay/tranzilla'
 
 // --- Debug logging infrastructure ---
 
@@ -94,6 +95,12 @@ const mockConfigs = {
     userId: 'mock-user',
     baseUrl: process.env.GROW_MOCK_URL || 'http://localhost:4400/api/light/server/1.0',
   },
+  tranzilla: {
+    appKey: 'mock-app-key',
+    secretKey: 'mock-secret-key',
+    terminal: 'mock-terminal',
+    baseUrl: process.env.TRANZILLA_MOCK_URL || 'http://localhost:4500/v1',
+  },
 }
 
 const sandboxConfigs = {
@@ -118,6 +125,11 @@ const sandboxConfigs = {
     userId: process.env.GROW_SANDBOX_USER_ID || '',
     baseUrl: 'https://sandbox.meshulam.co.il/api/light/server/1.0',
   },
+  tranzilla: {
+    appKey: process.env.TRANZILLA_SANDBOX_APP_KEY || '',
+    secretKey: process.env.TRANZILLA_SANDBOX_SECRET_KEY || '',
+    terminal: process.env.TRANZILLA_SANDBOX_TERMINAL || '',
+  },
 }
 
 const DEBUG_PANEL_ENABLED = process.env.DEBUG_PANEL_ENABLED === 'true'
@@ -127,7 +139,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { provider: providerName, amount, description, items, mock } = body
 
-    if (!providerName || !['morning', 'cardcom', 'icount', 'grow'].includes(providerName)) {
+    if (!providerName || !['morning', 'cardcom', 'icount', 'grow', 'tranzilla'].includes(providerName)) {
       return NextResponse.json({ error: 'Invalid provider' }, { status: 400 })
     }
 

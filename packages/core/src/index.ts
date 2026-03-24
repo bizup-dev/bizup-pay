@@ -16,6 +16,7 @@ export type {
   CardcomExtras,
   IcountExtras,
   GrowExtras,
+  TranzillaExtras,
 } from './types.js'
 
 export type {
